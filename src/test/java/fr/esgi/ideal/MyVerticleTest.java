@@ -26,6 +26,11 @@ public class MyVerticleTest {
         this.vertx.close(context.asyncAssertSuccess());
     }
 
+    /**
+     * Rigourous Test :-)
+     *
+     * @param context vertx's test context
+     */
     @Test
     public void testApp(@NonNull final TestContext context) {
         final Async async = context.async();
