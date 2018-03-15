@@ -1,0 +1,67 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>fr.esgi.ideal</groupId>
+    <artifactId>api-server</artifactId>
+    <version>0.1-SNAPSHOT</version>
+    <packaging>jar</packaging>
+
+    <name>api-server</name>
+    <description>API server of Ideal Shop</description>
+    <url>https://ESGI-Ideal.github.io/ideal-server/</url>
+    <inceptionYear>2018</inceptionYear>
+
+    <organization>
+        <name>Ideal</name>
+        <url>https://esgi-ideal.github.io/</url>
+    </organization>
+
+    <scm>
+        <url>https://github.com/ESGI-Ideal/Ideal-Server</url>
+        <connection>scm:git:git://github.com/ESGI-Ideal/Ideal-Server.git</connection>
+        <developerConnection>scm:git:git@github.com:ESGI-Ideal/Ideal-Server.git</developerConnection>
+    </scm>
+    <issueManagement>
+        <url>${scm.url}/issues</url>
+        <system>GitHub Issues</system>
+    </issueManagement>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+        <!-- Librairies versions -->
+        <vertx.version>3.5.1</vertx.version>
+    </properties>
+
+    <dependencies>
+        <!-- Vert.x -->
+        <dependency>
+            <groupId>io.vertx</groupId>
+            <artifactId>vertx-core</artifactId>
+            <version>${vertx.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.16.20</version>
+        </dependency>
+
+        <!-- Tests -->
+        <dependency>
+            <groupId>io.vertx</groupId>
+            <artifactId>vertx-unit</artifactId>
+            <version>${vertx.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.12</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+</project>

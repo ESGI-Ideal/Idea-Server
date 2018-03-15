@@ -1,0 +1,74 @@
+# Created by .ignore support plugin
+### JetBrains template
+# Covers JetBrains IDEs: IntelliJ, RubyMine, PhpStorm, AppCode, PyCharm, CLion, Android Studio and Webstorm
+# Reference: https://intellij-support.jetbrains.com/hc/en-us/articles/206544839
+
+.idea/
+cmake-build-debug/
+cmake-build-release/
+*.iws
+
+# IntelliJ
+out/
+.idea_modules/
+atlassian-ide-plugin.xml
+
+# Crashlytics plugin (for Android Studio and IntelliJ)
+com_crashlytics_export_strings.xml
+crashlytics.properties
+crashlytics-build.properties
+fabric.properties
+
+### Java template
+*.class
+*.log
+*.ctxt
+.mtj.tmp/
+
+# Package Files #
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+hs_err_pid*
+
+### Maven template
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+
+# Avoid ignoring Maven wrapper jar file (.jar files are usually ignored)
+!/.mvn/wrapper/maven-wrapper.jar
+
+### Eclipse template
+.metadata
+bin/
+tmp/
+*.tmp
+*.bak
+*.swp
+*~.nib
+local.properties
+.settings/
+.loadpath
+.recommenders
+.externalToolBuilders/
+*.launch
+.factorypath
+.target
+.tern-project
+.texlipse
+.springBeans
+.recommenders/
+.cache-main
+.scala_dependencies
+.worksheet
