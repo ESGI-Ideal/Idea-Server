@@ -15,11 +15,11 @@ mvn clean package
 Then there is two way for start the server :
   * with Vert.x's [Launcher](http://vertx.io/docs/apidocs/io/vertx/core/Launcher.htmll)
     *Todo*
-
   * with the fat JAR (for deployed)
     ```bash
-    java -jar api-server-{version}-fat.jar
+    java -jar api-server-{version}-fat.jar -conf src/main/api-conf.json
     ```
+
 
 ## Troubleshoots
 ### _There is an `io.vertx.core.VertxException: Thread blocked` when I launch my server_

@@ -19,7 +19,7 @@ public class MyVerticle extends AbstractVerticle {
         this.start();
         this.vertx.createHttpServer()
                 .requestHandler(req -> req.response().end("Hello World !"))
-                .listen(8080, result -> {
+                .listen(this.config().getInteger("http.port", 8080), result -> {
                     if(result.succeeded())
                         startFuture.complete();
                     else
