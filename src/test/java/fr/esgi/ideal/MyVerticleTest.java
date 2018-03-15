@@ -1,6 +1,7 @@
 package fr.esgi.ideal;
 
 import io.vertx.core.Vertx;
+import io.vertx.core.VertxOptions;
 import io.vertx.ext.unit.Async;
 import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
@@ -16,7 +17,7 @@ public class MyVerticleTest {
 
     @Before
     public void setUp(@NonNull final TestContext context) {
-        this.vertx = Vertx.vertx();
+        this.vertx = Vertx.vertx(new VertxOptions().setBlockedThreadCheckInterval(200000000));
         this.vertx.deployVerticle(MyVerticle.class.getName(), context.asyncAssertSuccess());
     }
 
