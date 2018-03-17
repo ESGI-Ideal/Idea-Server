@@ -1,10 +1,19 @@
 # Idea-Server
 API Server of Idea site
 
-## Compile
+## Compile & Pack to JAR
+Pour compiler :
 ```bash
 mvn clean compile
 ```
+
+Pour packager (jar + fat-jar) :
+```bash
+mvn package
+```
+
+Pour compiler sans exécuter les tests, ajouter le paramètre `-DskipTests`.
+
 
 ## Run
 First compile the server :

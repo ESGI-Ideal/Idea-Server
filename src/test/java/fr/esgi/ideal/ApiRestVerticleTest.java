@@ -17,7 +17,7 @@ import java.io.IOException;
 import java.net.ServerSocket;
 
 @RunWith(VertxUnitRunner.class)
-public class MyVerticleTest {
+public class ApiRestVerticleTest {
     private /*final static*/ int port = 8081;
     private Vertx vertx;
 
@@ -27,7 +27,7 @@ public class MyVerticleTest {
         try(final ServerSocket socket = new ServerSocket(0)) {
             this.port = socket.getLocalPort();
         }
-        this.vertx.deployVerticle(MyVerticle.class.getName(),
+        this.vertx.deployVerticle(ApiRestVerticle.class.getName(),
                                   new DeploymentOptions().setConfig(new JsonObject().put("http.port", port)),
                                   context.asyncAssertSuccess());
     }
