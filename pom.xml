@@ -23,7 +23,7 @@
         <developerConnection>scm:git:git@github.com:ESGI-Ideal/Ideal-Server.git</developerConnection>
     </scm>
     <issueManagement>
-        <url>${scm.url}/issues</url>
+        <url>${project.scm.url}/issues</url>
         <system>GitHub Issues</system>
     </issueManagement>
 
@@ -35,6 +35,18 @@
         <!-- Librairies versions -->
         <vertx.version>3.5.1</vertx.version>
     </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>io.vertx</groupId>
+                <artifactId>vertx-dependencies</artifactId>
+                <version>${vertx.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <dependencies>
         <!-- Vert.x -->
@@ -90,9 +102,32 @@
                                         <Main-Verticle>fr.esgi.ideal.ApiRestVerticle</Main-Verticle>
                                     </manifestEntries>
                                 </transformer>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                                    <resource>META-INF/services/io.vertx.core.spi.VerticleFactory</resource>
+                                </transformer>
                             </transformers>
                             <artifactSet/>
                             <outputFile>${project.build.directory}/${project.artifactId}-${project.version}-fat.jar</outputFile>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>1.6.0</version>
+                <executions>
+                    <execution>
+                        <id>run-app</id><!-- run the application using the fat jar -->
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>java</executable>
+                            <arguments>
+                                <argument>-jar</argument>
+                                <argument>${project.build.directory}/${project.artifactId}-${project.version}-fat.jar</argument>
+                            </arguments>
                         </configuration>
                     </execution>
                 </executions>
