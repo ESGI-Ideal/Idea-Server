@@ -1,0 +1,214 @@
+openapi: 3.0.0
+servers: []
+  #- url: 'http://api.ideal.com/'
+  #  description: Ideal data API
+  #  variables: {}
+info:
+  description: >-
+    For this sample, you can use the api key `special-key` to test the
+    authorization filters.
+  version: 1.0.0
+  title: Swagger Petstore
+  termsOfService: 'https://esgi-ideal.github.io/terms/'
+  contact:
+    email: todo@reseau-ges.fr
+    name: IDeal Shop Support
+    url: 'https://esgi-ideal.github.io/support/'
+  license:
+    name: CC BY-SA 4.0
+    url: 'https://creativecommons.org/licenses/by/4.0/'
+tags:
+  - name: article
+    description: Everything about your articles
+    externalDocs:
+      description: Find out more
+      url: 'http://todo/doc'
+  - name: user
+    description: Operations about user
+  - name: partner
+    description: Access to Petstore orders
+    externalDocs:
+      description: Find out more about our partners
+      url: 'http://doc/todo'
+  - name: ads
+paths:
+  /:
+    get:
+      summary: 'informations de base (statut, version ...)'
+      description: ''
+      operationId: apiInfos
+      responses:
+        200:
+          description: 'OK'
+          content:
+            application/json:
+                schema:
+                  type: object
+  /search:
+    get:
+      summary: search in articles
+      description: ''
+      parameters: []
+      operationId: doSearch
+      responses:
+        default:
+          description: Default response
+      tags:
+        - article
+  /article:
+    get:
+      summary: articles list
+      description: Return all articles from the system
+      operationId: getArticles
+      responses:
+        '200':
+          description: A list of articles
+          content:
+            application/json:
+                schema:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Article'
+      tags:
+        - article
+  /user:
+    get:
+      summary: users list
+      description: Return all users from the system
+      operationId: getUsers
+      responses:
+        '200':
+          description: A list of users
+          content:
+            application/json:
+                schema:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/User'
+      tags:
+        - user
+  /partner:
+    get:
+      summary: partners list
+      description: Return all partners from the system
+      operationId: getPartners
+      responses:
+        '200':
+          description: A list of partner
+          content:
+            application/json:
+                schema:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Partner'
+      tags:
+        - partner
+externalDocs:
+  description: See API example
+  url: 'https://esgi-ideal.github.io/'
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        #username:
+        #  type: string
+        #firstName:
+        #  type: string
+        #lastName:
+        #  type: string
+        email:
+          type: string
+        password:
+          type: string
+          format: password
+        inscription:
+          type: string
+          format: date
+      xml:
+        name: User
+    Tag:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+      xml:
+        name: Tag
+    ApiResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          format: int32
+        type:
+          type: string
+        message:
+          type: string
+    Article:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        created:
+          type: string
+          format: date-time
+        updated:
+          type: string
+          format: date-time
+        description:
+          type: string
+        price:
+          type: number
+          format: float
+    Partner:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        img_url:
+          type: string
+        img_data:
+          type: string
+          format: byte
+          description: ...
+  responses:
+    #'202':
+    #    description: 'OK'
+    #'201':
+    #    description: 'Entity created'
+    '204':
+        description: 'Entity deleted'
+    '304':
+        description: 'Entity not modified'
+    '400':
+        description: 'Illegal input for operation'
+    '406':
+        description: 'Illegal input for operation'
+    '404':
+        description: 'Entity not found'
+    '401':
+        description: 'Authentication required for access this resource'
+    '403':
+        description: 'Privileges access refused'
+    '409':
+        description: 'Entity conflicts with operation'
+  parameters: {}
+  examples: {}
+  requestBodies: {}
+  headers: {}
+  securitySchemes: {}
+  links: {}
+  callbacks: {}
+security: []
