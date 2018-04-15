@@ -71,6 +71,24 @@ paths:
                     $ref: '#/components/schemas/Article'
       tags:
         - article
+  /article/{id}:
+    get:
+      summary: informations on an article
+      description: ''
+      operationId: getArticle
+      parameters:
+        - $ref: '#/components/parameters/id'
+      responses:
+        '200':
+          description: Datas on the article
+          content:
+            application/json:
+                schema:
+                  $ref: '#/components/schemas/Article'
+        default:
+          description: Article's ID not exist
+      tags:
+        - article
   /user:
     get:
       summary: users list
@@ -85,6 +103,24 @@ paths:
                   type: array
                   items:
                     $ref: '#/components/schemas/User'
+      tags:
+        - user
+  /user/{id}:
+    get:
+      summary: informations on an user
+      description: ''
+      operationId: getUser
+      parameters:
+        - $ref: '#/components/parameters/id'
+      responses:
+        '200':
+          description: Datas on the user
+          content:
+            application/json:
+                schema:
+                  $ref: '#/components/schemas/User'
+        default:
+          description: User's ID not exist
       tags:
         - user
   /partner:
@@ -103,6 +139,60 @@ paths:
                     $ref: '#/components/schemas/Partner'
       tags:
         - partner
+  /partner/{id}:
+    get:
+      summary: informations on an partner
+      description: ''
+      operationId: getPartner
+      parameters:
+        - $ref: '#/components/parameters/id'
+      responses:
+        '200':
+          description: Datas on the partner
+          content:
+            application/json:
+                schema:
+                  $ref: '#/components/schemas/Partner'
+        default:
+          description: Partner's ID not exist
+      tags:
+        - partner
+  /ad:
+    get:
+      summary: ads list
+      description: Return all ads from the system
+      operationId: getAds
+      responses:
+        '200':
+          description: A list of ads
+          content:
+            application/json:
+                schema:
+                  type: array
+                  items:
+                    type: integer
+                    format: int64
+                  #  $ref: '#/components/schemas/Ad'
+      tags:
+        - ads
+  /ad/{id}:
+    get:
+      summary: informations on an ad
+      description: ''
+      operationId: getAd
+      parameters:
+        - $ref: '#/components/parameters/id'
+      responses:
+        '200':
+          description: Datas on the ad
+          content:
+            application/json:
+                schema:
+                  type: integer
+        default:
+          description: Ad's ID not exist
+      tags:
+        - ads
 externalDocs:
   description: See API example
   url: 'https://esgi-ideal.github.io/'
@@ -204,7 +294,14 @@ components:
         description: 'Privileges access refused'
     '409':
         description: 'Entity conflicts with operation'
-  parameters: {}
+  parameters:
+    id:
+        name: id
+        in: path
+        required: true
+        schema:
+            type: integer
+            format: int64
   examples: {}
   requestBodies: {}
   headers: {}

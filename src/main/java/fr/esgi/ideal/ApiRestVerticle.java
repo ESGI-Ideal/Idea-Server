@@ -1,5 +1,9 @@
 package fr.esgi.ideal;
 
+import fr.esgi.ideal.api.ApiAd;
+import fr.esgi.ideal.api.ApiArticle;
+import fr.esgi.ideal.api.ApiPartner;
+import fr.esgi.ideal.api.ApiUser;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
 import io.vertx.core.http.HttpServerResponse;
@@ -13,7 +17,6 @@ import lombok.NonNull;
 
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
@@ -63,27 +66,21 @@ public class ApiRestVerticle extends AbstractVerticle {
                     routerFactory.addFailureHandlerByOperationId("awesomeOperation", routingContext -> {
                         // Handle failure
                     });*/
-                    routerFactory.addHandlerByOperationId("apiInfos", routingContext -> routingContext.response().end(new JsonObject()
-                            .put("serveur", new JsonObject()
-                                    .put("implementation", new JsonObject()
-                                            .put("title",  this.getClass().getPackage().getImplementationTitle())
-                                            .put("vendor",  this.getClass().getPackage().getImplementationVendor())
-                                            .put("version", this.getClass().getPackage().getImplementationVersion()))
-                                    .put("specification", new JsonObject()
-                                            .put("title",  this.getClass().getPackage().getSpecificationTitle())
-                                            .put("vendor",  this.getClass().getPackage().getSpecificationVendor())
-                                            .put("version", this.getClass().getPackage().getSpecificationVersion()))
-                                    /*.toString()*/)
-                            .put("api", new JsonObject().put("version", (String)null))
-                            .toString()));
+                    addHandleRoot(routerFactory);
+                    addHandleArticle(routerFactory);
+                    addHandleUser(routerFactory);
+                    addHandlePartner(routerFactory);
+                    addHandleAd(routerFactory);
                     //part_auth(routerFactory);
                     //routerFactory.addHandlerByOperationId("doSearch", routingContext -> {}); //TODO
-                    routerFactory.addHandlerByOperationId("getArticles", routingContext -> outJson.accept(routingContext, TmpDB.getInstance().getArticles().values()));
-                    routerFactory.addHandlerByOperationId("getUsers", routingContext -> outJson.accept(routingContext, TmpDB.getInstance().getUsers().values()));
-                    routerFactory.addHandlerByOperationId("getPartners", routingContext -> outJson.accept(routingContext, TmpDB.getInstance().getPartners().values()));
                 }
                 //routerFactory.addSecurityHandler("jwt_auth", JWTAuthHandler.create(jwtAuthProvider));
                 final Router router = routerFactory.getRouter();
+                /*{
+                    final Logger logger = LoggerFactory.getLogger(this.getClass().getSimpleName());
+                    router.getRoutes().forEach(route -> {logger.info(route.toString());});
+                    logger.info(routerFactory.toString());
+                }*/
                 //router.route("/*").handler(routCtx -> routCtx.fail(400)); //others paths
                 this.vertx.createHttpServer()
                         .requestHandler(router::accept)
@@ -96,6 +93,48 @@ public class ApiRestVerticle extends AbstractVerticle {
             }
         });
     }
+
+    private /*static*/ void addHandleRoot(@NonNull final OpenAPI3RouterFactory routerFactory) {
+        routerFactory.addHandlerByOperationId("apiInfos", routingContext -> routingContext.response().end(new JsonObject()
+                .put("serveur", new JsonObject()
+                                .put("implementation", new JsonObject()
+                                        .put("title",  this.getClass().getPackage().getImplementationTitle())
+                                        .put("vendor",  this.getClass().getPackage().getImplementationVendor())
+                                        .put("version", this.getClass().getPackage().getImplementationVersion()))
+                                .put("specification", new JsonObject()
+                                        .put("title",  this.getClass().getPackage().getSpecificationTitle())
+                                        .put("vendor",  this.getClass().getPackage().getSpecificationVendor())
+                                        .put("version", this.getClass().getPackage().getSpecificationVersion()))
+                        /*.toString()*/)
+                .put("api", new JsonObject().put("version", (String)null))
+                .toString()));
+    }
+
+    private static void addHandleArticle(@NonNull final OpenAPI3RouterFactory routerFactory) {
+        final ApiArticle api = new ApiArticle();
+        routerFactory.addHandlerByOperationId("getArticles", api::getAll);
+        routerFactory.addHandlerByOperationId("getArticle", api::get);
+    }
+
+    private static void addHandleUser(@NonNull final OpenAPI3RouterFactory routerFactory) {
+        final ApiUser api = new ApiUser();
+        routerFactory.addHandlerByOperationId("getUsers", api::getAll);
+        routerFactory.addHandlerByOperationId("getUser", api::get);
+    }
+
+    private static void addHandlePartner(@NonNull final OpenAPI3RouterFactory routerFactory) {
+        final ApiPartner api = new ApiPartner();
+        routerFactory.addHandlerByOperationId("getPartners", api::getAll);
+        routerFactory.addHandlerByOperationId("getPartner", api::get);
+    }
+
+    private static void addHandleAd(@NonNull final OpenAPI3RouterFactory routerFactory) {
+        final ApiAd api = new ApiAd();
+        routerFactory.addHandlerByOperationId("getAds", api::getAll);
+        routerFactory.addHandlerByOperationId("getAd", api::get);
+    }
+
+    /* ************************************************************ */
 
     private final static Function<RoutingContext, HttpServerResponse> respJson = ctx -> ctx.response().putHeader("content-type", "application/json; charset=utf-8");
     private final static BiConsumer<RoutingContext, Object> outJson = (ctx, obj) -> respJson.apply(ctx).end(Json.encodePrettily(obj));
@@ -127,9 +166,4 @@ public class ApiRestVerticle extends AbstractVerticle {
         routerFactory.addHandlerByOperationId("getUserById", routingContext -> ifId(routingContext, (resp, id) -> resp.end(Json.encode(other))));
     }*/
 
-    private static void part_ads(@NonNull final OpenAPI3RouterFactory routerFactory) {
-        final AtomicLong counter = new AtomicLong();
-        routerFactory.addHandlerByOperationId("getNextAd", routingContext -> routingContext.reroute("/ad/"+counter.getAndIncrement()));
-        routerFactory.addHandlerByOperationId("getAd", routingContext -> outJson.accept(routingContext, new JsonObject()));
-    }
 }
