@@ -123,6 +123,22 @@ paths:
           description: User's ID not exist
       tags:
         - user
+      security:
+        - OAuth2:
+            - user
+  /user/me:
+    get:
+      summary: informations on current user
+      operationId: getCurrentUser
+      security:
+        - OAuth2:
+            - user
+            - admin
+      responses:
+        default:
+          description: ''
+      tags:
+        - user
   /partner:
     get:
       summary: partners list
@@ -193,6 +209,53 @@ paths:
           description: Ad's ID not exist
       tags:
         - ads
+  /oauth2/token:
+    post:
+      summary: OAuth2 authnetication end-point
+      operationId: oauth2Token
+      #parameters: !!!
+      requestBody:
+        description: 'OAuth information for request'
+        required: true
+        content:
+          #application/x-www-form-urlencoded
+          '*/*':
+            schema:
+              type: object
+              required:
+                - grant_type
+                - username
+                - password
+                - client_id
+                - client_secret
+                - scope
+              properties:
+                grant_type:
+                    type: string
+                    enum: [password]
+                username:
+                    type: string
+                password:
+                    type: string
+                    format: password
+                client_id:
+                    type: string
+                client_secret:
+                    type: string
+                    format: password
+                scope:
+                    type: array
+                    #items:
+                    #    type: string
+      responses:
+        '400':
+            description: 'Access token error'
+            content:
+                application/json: {}
+        default:
+          description: ''
+          content:
+            application/json: {}
 externalDocs:
   description: See API example
   url: 'https://esgi-ideal.github.io/'
@@ -305,7 +368,19 @@ components:
   examples: {}
   requestBodies: {}
   headers: {}
-  securitySchemes: {}
+  securitySchemes:
+    OAuth2:
+        type: oauth2
+        flows:
+            password:
+                tokenUrl: "/oauth2/token"
+                refreshUrl: "/oauth2/refresh"
+                scopes:
+                    user: Access to connected user
+                    admin: Access to administrators
   links: {}
   callbacks: {}
-security: []
+security:
+    - OAuth2: []
+    #- ApiKey: []
+

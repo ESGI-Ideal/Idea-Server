@@ -2,6 +2,7 @@ package fr.esgi.ideal;
 
 import fr.esgi.ideal.api.ApiAd;
 import fr.esgi.ideal.api.ApiArticle;
+import fr.esgi.ideal.api.ApiAuth;
 import fr.esgi.ideal.api.ApiPartner;
 import fr.esgi.ideal.api.ApiUser;
 import io.vertx.core.AbstractVerticle;
@@ -43,12 +44,14 @@ public class ApiRestVerticle extends AbstractVerticle {
                 {
                     // Create and mount options to router factory
                     final RouterFactoryOptions options = new RouterFactoryOptions()
-                            .setRequireSecurityHandlers(false) //TODO Temp
+                            .setRequireSecurityHandlers(true) //TODO Temp
                             .setMountNotImplementedHandler(true)
                             .setMountValidationFailureHandler(true)
                             .setMountResponseContentTypeHandler(true);
                     routerFactory.setOptions(options);
                 }
+//                routerFactory.addSecurityHandler("OAuth2", OAuth2AuthHandler.create(
+//                        OAuth2Auth.create(vertx, OAuth2FlowType.PASSWORD, new OAuth2ClientOptions().setClientID("acme").setClientSecret("secret").setSite("localhost"))));
                 /*{
                     // Add a security handler
                     routerFactory.addSecurityHandler("api_key", routingContext -> {
@@ -56,6 +59,8 @@ public class ApiRestVerticle extends AbstractVerticle {
                         routingContext.next();
                     });
                 }*/
+                //SwaggerParseResult swaggerParseResult = new OpenAPIV3Parser().readLocation(url, null, OpenApi3Utils.getParseOptions());
+                //      if (swaggerParseResult.getMessages().isEmpty()) ...
                 {
                     /*routerFactory.addHandlerByOperationId("awesomeOperation", routingContext -> {
                         RequestParameters params = routingContext.get("parsedParameters");
@@ -120,6 +125,35 @@ public class ApiRestVerticle extends AbstractVerticle {
         final ApiUser api = new ApiUser();
         routerFactory.addHandlerByOperationId("getUsers", api::getAll);
         routerFactory.addHandlerByOperationId("getUser", api::get);
+        //getCurrentUser
+        final ApiAuth auth = new ApiAuth(api);
+        /*routerFactory.addSecurityHandler("OAuth2", new AuthHandler() {
+            @Override
+            public AuthHandler addAuthority(String authority) {
+                return null;
+            }
+
+            @Override
+            public AuthHandler addAuthorities(Set<String> authorities) {
+                return null;
+            }
+
+            @Override
+            public void parseCredentials(RoutingContext context, Handler<AsyncResult<JsonObject>> handler) {
+            }
+
+            @Override
+            public void authorize(User user, Handler<AsyncResult<Void>> handler) {
+            }
+
+            @Override
+            public void handle(RoutingContext event) {
+            }
+        });*/
+        routerFactory.addHandlerByOperationId("oauth2Token", auth::token);
+        routerFactory.addSecurityHandler("OAuth2", auth::prepare_oauth);
+        routerFactory.addSecuritySchemaScopeValidator("OAuth2", "user", auth::check_scope_user);
+        routerFactory.addSecuritySchemaScopeValidator("OAuth2", "admin", auth::check_scope_admin);
     }
 
     private static void addHandlePartner(@NonNull final OpenAPI3RouterFactory routerFactory) {
