@@ -7,6 +7,7 @@ import fr.esgi.ideal.api.ApiPartner;
 import fr.esgi.ideal.api.ApiUser;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
+import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
@@ -14,8 +15,11 @@ import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.api.contract.RouterFactoryOptions;
 import io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory;
+import io.vertx.ext.web.handler.CorsHandler;
 import lombok.NonNull;
 
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
@@ -78,6 +82,15 @@ public class ApiRestVerticle extends AbstractVerticle {
                     addHandleAd(routerFactory);
                     //part_auth(routerFactory);
                     //routerFactory.addHandlerByOperationId("doSearch", routingContext -> {}); //TODO
+                    /*routerFactory.addSecurityHandler("api_cors", context -> {
+                        context.response()
+                                .putHeader("Access-Control-Allow-Origin", "*")
+                                .putHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+                        context.next();
+                    });*/
+                    routerFactory.addSecurityHandler("api_cors", CorsHandler.create("*")
+                            //.allowedHeaders(new HashSet<>(Arrays.asList("x-requested-with", "Access-Control-Allow-Origin", "origin", "Content-Type", "accept", "X-PINGARUNER")))
+                            .allowedMethods(new HashSet<>(Arrays.asList(HttpMethod.values()))));
                 }
                 //routerFactory.addSecurityHandler("jwt_auth", JWTAuthHandler.create(jwtAuthProvider));
                 final Router router = routerFactory.getRouter();

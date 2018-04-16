@@ -378,9 +378,14 @@ components:
                 scopes:
                     user: Access to connected user
                     admin: Access to administrators
+    api_cors:
+        type: apiKey
+        name: api_key
+        in: header
+        description: Vert.X hack for CORS headers
   links: {}
   callbacks: {}
 security:
     - OAuth2: []
-    #- ApiKey: []
+    - api_cors: []
 
