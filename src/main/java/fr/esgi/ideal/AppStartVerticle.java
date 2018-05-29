@@ -1,6 +1,7 @@
 package fr.esgi.ideal;
 
 import io.vertx.core.AbstractVerticle;
+import io.vertx.core.CompositeFuture;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Future;
 import io.vertx.core.Verticle;
@@ -11,9 +12,16 @@ import lombok.extern.slf4j.Slf4j;
 public final class AppStartVerticle extends AbstractVerticle {
     @Override
     public void start(final Future<Void> startFuture) {
-        this.deploy(ApiRestVerticle.class, new DeploymentOptions().setInstances(4));
+        CompositeFuture.join(
+                this.deploy(ApiRestVerticle.class, new DeploymentOptions().setInstances(4)),
+                this.deploy(DatabaseVerticle.class, new DeploymentOptions().setInstances(1))
+        ).setHandler(ar -> {
+            if(ar.succeeded())
+                startFuture.complete();
+            else
+                startFuture.fail(ar.cause());
+        });
         log.info("Module(s) and/or verticle(s) deployment...DONE");
-        //startFuture.complete();
     }
 
     @Override

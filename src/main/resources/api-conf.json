@@ -1,3 +1,8 @@
 {
-  "http.port" : 8888
+  "http.port" : 8888,
+  "database": {
+    "url": "jdbc:hsqldb:file:db/wiki",
+    "driver_class": "org.hsqldb.jdbcDriver",
+    "max_pool_size": 30
+  }
 }
