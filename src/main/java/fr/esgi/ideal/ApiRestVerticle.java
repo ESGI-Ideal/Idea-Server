@@ -5,25 +5,22 @@ import fr.esgi.ideal.dto.TmpMap;
 import fr.esgi.ideal.dto.User;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
-import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.Json;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
 import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
 
-import java.math.RoundingMode;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.IntStream;
 
@@ -33,18 +30,13 @@ import static io.vertx.core.http.HttpMethod.PATCH;
 import static io.vertx.core.http.HttpMethod.POST;
 import static io.vertx.core.http.HttpMethod.PUT;
 
+@Slf4j
 public class ApiRestVerticle extends AbstractVerticle {
-    /**
-     * Start the verticle.<p>
-     * This is called by Vert.x when the verticle instance is deployed. Don't call it yourself.<p>
-     * If your verticle does things in its startup which take some time then you can override this method
-     * and call the startFuture some time later when start up is complete.
-     *
-     * @param startFuture a future which should be called when verticle start-up is complete.
-     * @throws Exception
-     */
+    private HttpServer httpServer;
+
     @Override
     public void start(@NonNull Future<Void> startFuture) throws Exception {
+        log.info("Starting verticle ...");
         this.start();
         final Router router = Router.router(vertx);
         part_article(router);
@@ -52,7 +44,7 @@ public class ApiRestVerticle extends AbstractVerticle {
         part_auth(router);
         part_ads(router);
         router.route("/*").handler(routCtx -> routCtx.fail(400)); //others paths
-        this.vertx.createHttpServer()
+        this.httpServer = this.vertx.createHttpServer()
                 .requestHandler(router::accept)
                 .listen(this.config().getInteger("http.port", 8080), result -> {
                     if(result.succeeded())
@@ -60,6 +52,14 @@ public class ApiRestVerticle extends AbstractVerticle {
                     else
                         startFuture.fail(result.cause());
                 });
+        log.info("Starting complete");
+    }
+
+    @Override
+    public void stop(final Future<Void> stopFuture) throws Exception {
+        log.info("Stopping verticle");
+        this.stop();
+        this.httpServer.close(stopFuture.completer());
     }
 
     private final static Function<RoutingContext, HttpServerResponse> respJson = ctx -> ctx.response().putHeader("content-type", "application/json; charset=utf-8");
