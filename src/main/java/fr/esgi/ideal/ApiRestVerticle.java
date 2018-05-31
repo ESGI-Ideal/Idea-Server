@@ -36,7 +36,7 @@ public class ApiRestVerticle extends AbstractVerticle {
 
     @Override
     public void start(@NonNull Future<Void> startFuture) throws Exception {
-        log.info("Starting verticle ...");
+        log.debug("Starting verticle ...");
         this.start();
         final Router router = Router.router(vertx);
         part_article(router);
@@ -52,12 +52,12 @@ public class ApiRestVerticle extends AbstractVerticle {
                     else
                         startFuture.fail(result.cause());
                 });
-        log.info("Starting complete");
+        log.debug("Starting complete");
     }
 
     @Override
     public void stop(final Future<Void> stopFuture) throws Exception {
-        log.info("Stopping verticle");
+        log.debug("Stopping verticle");
         this.stop();
         this.httpServer.close(stopFuture.completer());
     }

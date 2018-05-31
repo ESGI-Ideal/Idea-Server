@@ -21,13 +21,14 @@ public final class AppStartVerticle extends AbstractVerticle {
             else
                 startFuture.fail(ar.cause());
         });
-        log.info("Module(s) and/or verticle(s) deployment...DONE");
+        log.info("Module(s) and/or verticle(s) deployment... DONE");
     }
 
     @Override
     public void stop(final Future<Void> stopFuture) {
-        log.debug("Undeploying verticle(s)...DONE");
-        log.info("Application stopped successfully. Enjoy the elevator music while we're offline...");
+        log.debug("Undeploying verticle(s)... DONE");
+        //
+        log.info("Application stopped successfully.");
         stopFuture.complete();
     }
 
@@ -35,7 +36,7 @@ public final class AppStartVerticle extends AbstractVerticle {
         final Future<Void> future = Future.future();
         this.vertx.deployVerticle(clazz, options, handler -> {
             if(handler.succeeded()) {
-                log.debug("{} started successfully (deployment identifier: {})", clazz.getSimpleName(), handler.result());
+                log.info("{} started successfully (deployment identifier: {})", clazz.getSimpleName(), handler.result());
                 future.complete();
             } else {
                 log.error("{} deployment failed due to: ", clazz.getSimpleName(), handler.cause());
