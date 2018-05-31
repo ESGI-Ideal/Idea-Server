@@ -47,6 +47,7 @@
     <logger name="io.netty" level="warn" />
     <logger name="io.vertx" level="info" />
     <logger name="com.mchange" level="warn" />
+    <logger name="org.hsqldb" level="info" />
 
     <root level="debug">
         <appender-ref ref="STDOUT" />

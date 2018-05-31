@@ -6,13 +6,11 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.jdbc.JDBCClient;
 
 public class DatabaseVerticle extends AbstractVerticle {
-    private JDBCClient jdbcClient;
-
-    @Override
-    public void start() throws Exception {
-        super.start();
+    static {
         System.setProperty("hsqldb.reconfig_logging", "false"); //HSQLDB have little problem with loggers when embed
     }
+
+    private JDBCClient jdbcClient;
 
     @Override
     public void start(final Future<Void> startFuture) throws Exception {

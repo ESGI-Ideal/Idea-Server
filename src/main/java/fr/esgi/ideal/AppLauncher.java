@@ -5,11 +5,13 @@ import io.vertx.core.VertxOptions;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.core.logging.SLF4JLogDelegateFactory;
+import org.slf4j.bridge.SLF4JBridgeHandler;
 
 import static io.vertx.core.logging.LoggerFactory.LOGGER_DELEGATE_FACTORY_CLASS_NAME;
 
 public class AppLauncher extends Launcher {
     static {
+        System.setProperty("java.util.logging.config.file", "logging.properties");
         System.setProperty(LOGGER_DELEGATE_FACTORY_CLASS_NAME, SLF4JLogDelegateFactory.class.getName());
         //System.setProperty("vertx.logger-delegate-factory-class-name", "io.vertx.core.logging.SLF4JLogDelegateFactory");
         //LoggerFactory.getLogger(LoggerFactory.class); // Required for Logback to work in Vertx
@@ -43,6 +45,8 @@ public class AppLauncher extends Launcher {
     @Override
     public void beforeStartingVertx(final VertxOptions options) {
         System.setProperty(LOGGER_DELEGATE_FACTORY_CLASS_NAME, SLF4JLogDelegateFactory.class.getName());
+        SLF4JBridgeHandler.removeHandlersForRootLogger(); // Optionally remove existing handlers attached to j.u.l root logger
+        SLF4JBridgeHandler.install(); // add SLF4JBridgeHandler to j.u.l's root logger, should be done once during the initialization phase of your application
         super.beforeStartingVertx(options);
     }
 }
