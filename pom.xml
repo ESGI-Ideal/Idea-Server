@@ -34,6 +34,7 @@
         <maven.compiler.target>1.8</maven.compiler.target>
         <!-- Librairies versions -->
         <vertx.version>3.5.1</vertx.version>
+        <liquibase.version>3.5.5</liquibase.version>
     </properties>
 
     <dependencyManagement>
@@ -67,6 +68,22 @@
             <artifactId>vertx-jdbc-client</artifactId>
             <version>${vertx.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.liquibase</groupId>
+            <artifactId>liquibase-core</artifactId>
+            <version>${liquibase.version}</version>
+        </dependency>
+        <!--<dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>42.2.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.liquibase.ext</groupId>
+            <artifactId>liquibase-postgresql</artifactId>
+            <version>3.0</version>
+            <!- -in changset : <ext:vacuum/>- ->
+        </dependency>-->
         <dependency>
             <groupId>org.hsqldb</groupId>
             <artifactId>hsqldb</artifactId>
@@ -104,6 +121,11 @@
             <artifactId>jul-to-slf4j</artifactId>
             <version>1.7.25</version>
         </dependency>
+        <dependency>
+            <groupId>com.mattbertolini</groupId>
+            <artifactId>liquibase-slf4j</artifactId>
+            <version>2.0.0</version>
+        </dependency>
 
         <!-- Tests -->
         <dependency>
@@ -121,9 +143,77 @@
     </dependencies>
 
     <build>
-        <resources><resource><directory>src/main/resources</directory></resource></resources>
-        <testResources><testResource><directory>src/test/resources</directory></testResource></testResources>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
+        <testResources>
+            <testResource>
+                <directory>src/test/resources</directory>
+                <filtering>true</filtering>
+            </testResource>
+        </testResources>
         <plugins>
+            <plugin>
+                <groupId>org.liquibase</groupId>
+                <artifactId>liquibase-maven-plugin</artifactId>
+                <version>${liquibase.version}</version>
+                <configuration>
+                    <!--<propertyFileWillOverride>true</propertyFileWillOverride>-->
+                    <propertyFile>liquibase/liquibase.properties</propertyFile><!--src/main/resources/-->
+                    <changeLogFile>liquibase/db-changelog-master.xml</changeLogFile>
+                    <!--<changeLogFile>src/main/resources/org/liquibase/business_table.xml</changeLogFile>
+                    <driver>oracle.jdbc.driver.OracleDriver</driver>
+                    <url>jdbc:oracle:thin:@tf-appserv-linux:1521:xe</url>
+                    <username>liquibaseTest</username>
+                    <password>pass</password>-->
+                    <promptOnNonLocalDatabase>true</promptOnNonLocalDatabase>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>db_update</id>
+                        <!--<phase>process-resources</phase>-->
+                        <goals>
+                            <goal>update</goal>
+                        </goals>
+                        <configuration><skip>true</skip></configuration>
+                    </execution>
+                    <execution>
+                        <id>db_verify</id>
+                        <phase>verify</phase>
+                        <goals><goal>status</goal></goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <!--<plugin> TODO: semble obsolète avec maven
+                <groupId>net.tomred</groupId>
+                <artifactId>liquibase-validator-maven-plugin</artifactId>
+                <version>1.7.0</version>
+                <configuration>
+                    <dir>${project.build.sourceDirectory}/../resources/liquibase</dir>
+                    <!- -<ignore>
+                        <param>target\</param>
+                        <param>src\main\resources\liquibase\test.xml</param>
+                    </ignore>- ->
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>db_validate</id>
+                        <goals><goal>validate</goal></goals>
+                    </execution>
+                </executions>
+            </plugin>-->
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>3.1.0</version>
+                <configuration>
+                    <descriptors>
+                        <descriptor>src/assembly/liquibase_assembly.xml</descriptor>
+                    </descriptors>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
