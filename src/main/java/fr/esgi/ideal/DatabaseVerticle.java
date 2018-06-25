@@ -1,7 +1,10 @@
 package fr.esgi.ideal;
 
 import io.vertx.core.AbstractVerticle;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
+import io.vertx.core.Handler;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.jdbc.JDBCClient;
 import io.vertx.ext.sql.SQLConnection;
@@ -10,10 +13,12 @@ import liquibase.Liquibase;
 import liquibase.database.jvm.JdbcConnection;
 import liquibase.exception.LiquibaseException;
 import liquibase.resource.ClassLoaderResourceAccessor;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 
 @Slf4j
@@ -30,17 +35,12 @@ public class DatabaseVerticle extends AbstractVerticle {
         log.debug("Starting verticle ...");
         log.debug("config() = {}", this.config().encodePrettily());
         this.start();
-        final JsonObject conf = Optional.ofNullable(this.config().getJsonObject("datasource")).orElseGet(() -> new JsonObject()
-                .put("url", "jdbc:hsqldb:file:db/default")
-                .put("driver_class", "org.hsqldb.jdbcDriver")
-                /*.put("driver_class", "org.postgresql.Driver")
-                .put("url", "jdbc:postgresql://localhost:5432/ideal?tcpKeepAlive=true&loglevel=debug")
-                .put("user", "ideal-api")
-                .put("password", "ideal-pwd")*/
-                .put("max_pool_size", 30));
-        this.client = JDBCClient.createShared(this.vertx, conf);
-        this.startLiquibase.setHandler(startFuture.completer());
-        this.initLiquibase();
+        /*.put("driver_class", "org.postgresql.Driver")
+        .put("url", "jdbc:postgresql://localhost:5432/ideal?tcpKeepAlive=true&loglevel=debug")
+        .put("password", "ideal-pwd")*/
+        this.client = JDBCClient.createShared(this.vertx, this.config().getJsonObject("datasource"));
+        //startLiquibase.setHandler(startFuture.completer());
+        this.initLiquibase(startFuture/*.completer()*/);
         log.debug("Starting complete");
     }
 
@@ -51,10 +51,12 @@ public class DatabaseVerticle extends AbstractVerticle {
         this.client.close(stopFuture.completer());
     }
 
-    private Future<Void> startLiquibase = Future.future();
-    private final AtomicBoolean toInit = new AtomicBoolean(true);
-    private synchronized void initLiquibase() {
+    private /*static*/ Future<Void> startLiquibase = Future.future();
+    private final static AtomicBoolean toInit = new AtomicBoolean(true);
+    private synchronized void initLiquibase(@NonNull final Future<Void> future) {
         if(toInit.compareAndSet(true, false)) {
+            log.debug("Choose for init database");
+            startLiquibase.setHandler(future.completer());
             this.client.getConnection(ar -> {
                 if(ar.succeeded()) {
                     try(final SQLConnection connection = ar.result()) {
@@ -88,6 +90,10 @@ public class DatabaseVerticle extends AbstractVerticle {
                 } else
                     this.startLiquibase.fail(ar.cause());
             });
+        } else {
+            log.debug("Wait database initialisation");
+            future.complete();
+            //startLiquibase.updateAndGet(prev -> Future.<Void>future().setHandler(completer));
         }
     }
 }
