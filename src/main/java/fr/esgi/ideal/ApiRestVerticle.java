@@ -9,6 +9,7 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.Json;
+import io.vertx.core.json.JsonArray;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
@@ -17,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.Arrays;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -44,6 +46,14 @@ public class ApiRestVerticle extends AbstractVerticle {
         part_user(router);
         part_auth(router);
         part_ads(router);
+        router.get("/sql").handler(req -> {
+            this.vertx.eventBus().<List<JsonArray>>send(DatabaseVerticle.DB_QUERY, "SELECT \"its OK\"", async -> {
+                if(async.succeeded())
+                    outJson.accept(req, async.result().body());
+                else
+                    req.response().setStatusCode(500).end(async.cause().getMessage());
+            });
+        });
         router.route("/*").handler(routCtx -> routCtx.fail(400)); //others paths
         this.httpServer = this.vertx.createHttpServer()
                 .requestHandler(router::accept)

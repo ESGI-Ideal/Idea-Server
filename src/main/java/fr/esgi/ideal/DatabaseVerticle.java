@@ -1,11 +1,7 @@
 package fr.esgi.ideal;
 
 import io.vertx.core.AbstractVerticle;
-import io.vertx.core.AsyncResult;
-import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
-import io.vertx.core.Handler;
-import io.vertx.core.json.JsonObject;
 import io.vertx.ext.jdbc.JDBCClient;
 import io.vertx.ext.sql.SQLConnection;
 import liquibase.Contexts;
@@ -16,9 +12,7 @@ import liquibase.resource.ClassLoaderResourceAccessor;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 
 @Slf4j
@@ -26,6 +20,8 @@ public class DatabaseVerticle extends AbstractVerticle {
     static {
         System.setProperty("hsqldb.reconfig_logging", "false"); //HSQLDB have little problem with loggers when embed
     }
+
+    public final static String DB_QUERY = "ApiDatabase_Query";
 
     private /*SQLClient*/ JDBCClient client;
     private final static String DB_CHANGELOG = "liquibase/db-changelog.xml";
@@ -41,6 +37,12 @@ public class DatabaseVerticle extends AbstractVerticle {
         this.client = JDBCClient.createShared(this.vertx, this.config().getJsonObject("datasource"));
         //startLiquibase.setHandler(startFuture.completer());
         this.initLiquibase(startFuture/*.completer()*/);
+        this.vertx.eventBus().<String>consumer(DB_QUERY, msg -> this.client.query(msg.body(), result -> {
+            if(result.succeeded()) {
+                msg.reply(result.result().getResults());
+            } else
+                msg.fail(-1, result.cause().getMessage());
+        }));
         log.debug("Starting complete");
     }
 
