@@ -28,6 +28,7 @@ public class DatabaseVerticle extends AbstractVerticle {
     @Override
     public void start(final Future<Void> startFuture) throws Exception {
         log.debug("Starting verticle ...");
+        log.debug("config() = {}", this.config().encodePrettily());
         this.start();
         final JsonObject conf = Optional.ofNullable(this.config().getJsonObject("datasource")).orElseGet(() -> new JsonObject()
                 .put("url", "jdbc:hsqldb:file:db/default")

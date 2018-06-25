@@ -1,21 +1,52 @@
 {
-  "http.port" : 8888,
-  "datasource": {
-    "url": "jdbc:hsqldb:file:db/ideal",
-    "driver_class": "org.hsqldb.jdbcDriver",
-    "min_pool_size": 2,
-    "max_pool_size": 30
+  "name": "vertx-ideal",
+  "VertxOptions": {
+    "clustered": false,
+    "quorumSize": 1,
+    "haEnabled": false,
+    "blockedThreadCheckInterval": 2500,
+    "eventLoopPoolSize": 16,
+    "workerPoolSize": 20,
+    "eventBusOptions": {
+      "clustered": false,
+      "trustAll": true,
+      "clientAuth": false,
+      "host": "0.0.0.0",
+      "port": 0,
+      "logActivity": true,
+      "ssl": true,
+      "tcpKeepAlive": true,
+      "usePooledBuffers": true
+    },
+    "fileResolverCachingEnabled": true,
+    "metricsOptions": {
+      "enabled": false
+    }
   },
-  "datasource_prod" : {
-    //"provider_class" : "io.vertx.ext.jdbc.spi.impl.C3P0DataSourceProvider",
-    "driver_class" : "org.postgresql.Driver",
-    "url" : "jdbc:postgresql://localhost:5432/ideal?loglevel=1",
-    "user" : "",
-    "password" : ""
-  },
-  "datasourceTest" : {
-    "url" : "jdbc:hsqldb:mem:test?shutdown=true",
-    "driver_class" : "org.hsqldb.jdbcDriver",
-    "dropBeforeUpgrade": true
+  "verticles": {
+    "fr.esgi.ideal.ApiRestVerticle": {
+      "deploymentOptions": {
+        "config": {
+          "http.port": 18080,
+          "https.port": 14443,
+          "http2.port": 18443
+        },
+        "instances": 1,
+        "ha": false,
+        "worker": false,
+        "multiThreaded": false
+      }
+    },
+    "fr.esgi.ideal.DatabaseVerticle": {
+      "deploymentOptions": {
+        "config": {
+          "aa":"aaa"
+        },
+        "instances": 1,
+        "ha": false,
+        "worker": false,
+        "multiThreaded": false
+      }
+    }
   }
 }

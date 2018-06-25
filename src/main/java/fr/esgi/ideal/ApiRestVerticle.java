@@ -37,6 +37,7 @@ public class ApiRestVerticle extends AbstractVerticle {
     @Override
     public void start(@NonNull Future<Void> startFuture) throws Exception {
         log.debug("Starting verticle ...");
+        log.debug("config() = {}", this.config().encodePrettily());
         this.start();
         final Router router = Router.router(vertx);
         part_article(router);
