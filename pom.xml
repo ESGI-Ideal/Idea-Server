@@ -228,6 +228,7 @@
                                     <manifestEntries>
                                         <Main-Class>fr.esgi.ideal.AppLauncher</Main-Class>
                                         <Main-Verticle>fr.esgi.ideal.AppStartVerticle</Main-Verticle>
+                                        <!--<Main-Command>run</Main-Command>-->
                                     </manifestEntries>
                                 </transformer>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
@@ -255,6 +256,10 @@
                             <arguments>
                                 <argument>-jar</argument>
                                 <argument>${project.build.directory}/${project.artifactId}-${project.version}-fat.jar</argument>
+                                <!--<argument>list</argument>-->
+                                <!--<argument>run</argument>
+                                <argument>- -help</argument>-->
+                                <!--<argument>-version</argument>-->
                             </arguments>
                         </configuration>
                     </execution>
