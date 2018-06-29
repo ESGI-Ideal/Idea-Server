@@ -2,16 +2,15 @@ package fr.esgi.ideal;
 
 import fr.esgi.ideal.api.ApiAd;
 import fr.esgi.ideal.api.ApiArticle;
-import fr.esgi.ideal.api.ApiAuth;
 import fr.esgi.ideal.api.ApiPartner;
 import fr.esgi.ideal.api.ApiUser;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
+import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.Json;
-import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
@@ -22,13 +21,10 @@ import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Arrays;
-import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.HashSet;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 @Slf4j
 public class ApiRestVerticle extends AbstractVerticle {
@@ -39,14 +35,14 @@ public class ApiRestVerticle extends AbstractVerticle {
         log.debug("Starting verticle ...");
         log.debug("config() = {}", this.config().encodePrettily());
         this.start();
-        router.get("/sql").handler(req -> {
+        /*router.get("/sql").handler(req -> {
             this.vertx.eventBus().<List<JsonArray>>send(DatabaseVerticle.DB_QUERY, "SELECT \"its OK\"", async -> {
                 if(async.succeeded())
                     outJson.accept(req, async.result().body());
                 else
                     req.response().setStatusCode(500).end(async.cause().getMessage());
             });
-        });
+        });*/
         OpenAPI3RouterFactory.create(vertx, "src/main/resources/openapi.yaml", ar -> {
             if(ar.failed()) {
                 // Something went wrong during router factory initialization
@@ -84,11 +80,12 @@ public class ApiRestVerticle extends AbstractVerticle {
                     routerFactory.addFailureHandlerByOperationId("awesomeOperation", routingContext -> {
                         // Handle failure
                     });*/
+                    Stream.<BiConsumer<EventBus, OpenAPI3RouterFactory>>of(ApiRestVerticle::addHandleArticle,
+                                                                           ApiRestVerticle::addHandleUser,
+                                                                           ApiRestVerticle::addHandlePartner,
+                                                                           ApiRestVerticle::addHandleAd)
+                            .forEach(fnAdd -> fnAdd.accept(this.vertx.eventBus(), routerFactory));
                     addHandleRoot(routerFactory);
-                    addHandleArticle(routerFactory);
-                    addHandleUser(routerFactory);
-                    addHandlePartner(routerFactory);
-                    addHandleAd(routerFactory);
                     //part_auth(routerFactory);
                     //routerFactory.addHandlerByOperationId("doSearch", routingContext -> {}); //TODO
                     /*routerFactory.addSecurityHandler("api_cors", context -> {
@@ -138,18 +135,18 @@ public class ApiRestVerticle extends AbstractVerticle {
                 .toString()));
     }
 
-    private static void addHandleArticle(@NonNull final OpenAPI3RouterFactory routerFactory) {
-        final ApiArticle api = new ApiArticle();
+    private static void addHandleArticle(@NonNull final EventBus eventBus, @NonNull final OpenAPI3RouterFactory routerFactory) {
+        final ApiArticle api = new ApiArticle(eventBus);
         routerFactory.addHandlerByOperationId("getArticles", api::getAll);
         routerFactory.addHandlerByOperationId("getArticle", api::get);
     }
 
-    private static void addHandleUser(@NonNull final OpenAPI3RouterFactory routerFactory) {
-        final ApiUser api = new ApiUser();
+    private static void addHandleUser(@NonNull final EventBus eventBus, @NonNull final OpenAPI3RouterFactory routerFactory) {
+        final ApiUser api = new ApiUser(eventBus);
         routerFactory.addHandlerByOperationId("getUsers", api::getAll);
         routerFactory.addHandlerByOperationId("getUser", api::get);
         //getCurrentUser
-        final ApiAuth auth = new ApiAuth(api);
+        ///final ApiAuth auth = new ApiAuth(api);
         /*routerFactory.addSecurityHandler("OAuth2", new AuthHandler() {
             @Override
             public AuthHandler addAuthority(String authority) {
@@ -173,20 +170,21 @@ public class ApiRestVerticle extends AbstractVerticle {
             public void handle(RoutingContext event) {
             }
         });*/
-        routerFactory.addHandlerByOperationId("oauth2Token", auth::token);
-        routerFactory.addSecurityHandler("OAuth2", auth::prepare_oauth);
-        routerFactory.addSecuritySchemaScopeValidator("OAuth2", "user", auth::check_scope_user);
-        routerFactory.addSecuritySchemaScopeValidator("OAuth2", "admin", auth::check_scope_admin);
+        ///TODO: re-enable authentication
+        ///routerFactory.addHandlerByOperationId("oauth2Token", auth::token);
+        ///routerFactory.addSecurityHandler("OAuth2", auth::prepare_oauth);
+        ///routerFactory.addSecuritySchemaScopeValidator("OAuth2", "user", auth::check_scope_user);
+        ///routerFactory.addSecuritySchemaScopeValidator("OAuth2", "admin", auth::check_scope_admin);
     }
 
-    private static void addHandlePartner(@NonNull final OpenAPI3RouterFactory routerFactory) {
-        final ApiPartner api = new ApiPartner();
+    private static void addHandlePartner(@NonNull final EventBus eventBus, @NonNull final OpenAPI3RouterFactory routerFactory) {
+        final ApiPartner api = new ApiPartner(eventBus);
         routerFactory.addHandlerByOperationId("getPartners", api::getAll);
         routerFactory.addHandlerByOperationId("getPartner", api::get);
     }
 
-    private static void addHandleAd(@NonNull final OpenAPI3RouterFactory routerFactory) {
-        final ApiAd api = new ApiAd();
+    private static void addHandleAd(@NonNull final EventBus eventBus, @NonNull final OpenAPI3RouterFactory routerFactory) {
+        final ApiAd api = new ApiAd(eventBus);
         routerFactory.addHandlerByOperationId("getAds", api::getAll);
         routerFactory.addHandlerByOperationId("getAd", api::get);
     }
@@ -204,11 +202,6 @@ public class ApiRestVerticle extends AbstractVerticle {
             ctx.response().setStatusCode(400).end();
     }
 
-    public static void deleteIdObj(@NonNull final RoutingContext ctx, @NonNull final Map<Long, ?> db) {
-        db.remove(Long.valueOf(ctx.request().getParam("id")));
-    }
-
-    private static AtomicBoolean isConnected = new AtomicBoolean(false);
     /*private static void part_auth(@NonNull final OpenAPI3RouterFactory routerFactory) { //TODO: implements
         routerFactory.addHandlerByOperationId("getCurrentUser", routingContext -> respJson.apply(routingContext).end("{isConnected:"+isConnected.get()+(isConnected.get()?", {as_user:1":"")+"}"));
         routerFactory.addHandlerByOperationId("loginUser", routingContext -> {isConnected.set(true); outJson.accept(routingContext, logged);});

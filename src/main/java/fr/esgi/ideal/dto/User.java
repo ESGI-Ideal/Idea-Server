@@ -8,12 +8,15 @@ import io.vertx.ext.auth.AbstractUser;
 import io.vertx.ext.auth.AuthProvider;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Builder.Default;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.util.Date;
 
 @Data
 @AllArgsConstructor
+@EqualsAndHashCode(callSuper = true)
 @Builder
 public class User extends AbstractUser {
     /**
@@ -42,11 +45,11 @@ public class User extends AbstractUser {
      */
     private Date inscription;
 
-    private boolean isAdmin = false;
+    @Default private boolean isAdmin = false;
 
     @Override
     protected void doIsPermitted(final String permission, final Handler<AsyncResult<Boolean>> resultHandler) {
-        resultHandler.handle(Future.succeededFuture("admin".equalsIgnoreCase(permission) ? this.isAdmin : true));
+        resultHandler.handle(Future.succeededFuture(this.isAdmin || "admin".equalsIgnoreCase(permission)));
     }
 
     /**

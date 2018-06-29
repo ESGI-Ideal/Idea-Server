@@ -10,10 +10,8 @@ import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.auth.AuthProvider;
 import io.vertx.ext.web.RoutingContext;
 import lombok.Getter;
-import lombok.NonNull;
 
 import java.nio.charset.StandardCharsets;
-import java.time.Instant;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Date;
@@ -25,12 +23,9 @@ import java.util.stream.Collectors;
 /*
  * Based on https://github.com/dazraf/vertx-oauth2-server
  */
-public class ApiAuth {
+//@AllArgsConstructor
+/*public*/ class ApiAuth {
     private final Map<String, User> accounts = new HashMap<>();
-
-    public ApiAuth(@NonNull final ApiUser users) {
-        users.getAll()/*.stream().filter(u -> u.getPassword()!=null)*/.forEach(u -> accounts.put(u.getMail(), u));
-    }
 
     @Getter
     private final AuthProvider provider = new AuthProvider() {
