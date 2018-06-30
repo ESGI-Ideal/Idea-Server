@@ -1,48 +1,46 @@
 package fr.esgi.ideal.api;
 
-import fr.esgi.ideal.dto.User;
+import fr.esgi.ideal.api.dto.User;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
+import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.auth.AuthProvider;
 import io.vertx.ext.web.RoutingContext;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NonNull;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 /*
  * Based on https://github.com/dazraf/vertx-oauth2-server
  */
+@AllArgsConstructor
 public class ApiAuth {
-    private final Map<String, User> accounts = new HashMap<>();
-
-    public ApiAuth(@NonNull final ApiUser users) {
-        users.getAll()/*.stream().filter(u -> u.getPassword()!=null)*/.forEach(u -> accounts.put(u.getMail(), u));
-    }
+    private final EventBus eventBus;
+    private final User tmp = new User(0L, "mail@mail.com", Date.from(Instant.EPOCH), null, false);
 
     @Getter
     private final AuthProvider provider = new AuthProvider() {
         @Override
         public void authenticate(JsonObject authInfo, Handler<AsyncResult<io.vertx.ext.auth.User>> resultHandler) {
-            final User usr = accounts.get(authInfo.getString("username"));
+            /*final User usr = accounts.get(authInfo.getString("username"));
             if(usr == null)
                 resultHandler.handle(Future.failedFuture("User not exist"));
             else if(authInfo.getString("password", "").equals(usr.getPassword()))
                 resultHandler.handle(Future.failedFuture("incorrect password"));
-            else
-                resultHandler.handle(Future.succeededFuture(usr));
+            else*/
+                resultHandler.handle(Future.succeededFuture(tmp));
+                //TODO
         }
     };
 
@@ -61,12 +59,11 @@ public class ApiAuth {
             logger.info("psw="+ userPsw);
             logger.info("id="+ clientID);
             logger.info("sct="+ clientSecret);
-            logger.info("scopes='"+ scopes +"'");
-            this.accounts.forEach((s,u)->logger.info("account: "+s+" <=> "+u));
+            logger.info("scopes='"+ Arrays.toString(scopes) +"'");
 
             switch(grantType) {
                 case "password":
-                    if(!this.accounts.containsKey(userName)) {
+                    /*if(!this.accounts.containsKey(userName)) {
                         context.response().setStatusCode(400).setStatusMessage("Unknown user").end();
                         return;
                     }
@@ -74,7 +71,7 @@ public class ApiAuth {
                     if(!Optional.ofNullable(user.getPassword()).orElse("").equals(userPsw)) {
                         context.response().setStatusCode(400).setStatusMessage("Invalid credentials").end();
                         return;
-                    }
+                    }*/
                     //final String accessToken = tokenFountain.nextAccessToken();
                     JsonObject response = new JsonObject()
                             .put("access_token", Base64.getEncoder().encodeToString((userName+" "+new Date().getTime()).getBytes(StandardCharsets.UTF_8)))
@@ -108,7 +105,8 @@ public class ApiAuth {
             final String tokenDecode = new String(Base64.getDecoder().decode(raw.split(" ")[1]));
             final String[] tokenRaw = tokenDecode.split(" ");
             logger.info("token: "+Arrays.toString(tokenRaw));
-            routingContext.setUser(this.accounts.get(tokenRaw[0]));
+            //routingContext.setUser(this.accounts.get(tokenRaw[0]));
+            routingContext.setUser(tmp);
             //TODO routingContext.data().put(KEY_TOKEN_LIMIT, new Date(tokenRaw[1]));
         }
         routingContext.next();

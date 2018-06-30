@@ -1,4 +1,4 @@
-package fr.esgi.ideal.dto;
+package fr.esgi.ideal.api.dto;
 
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
@@ -8,12 +8,15 @@ import io.vertx.ext.auth.AbstractUser;
 import io.vertx.ext.auth.AuthProvider;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Builder.Default;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.util.Date;
 
 @Data
 @AllArgsConstructor
+@EqualsAndHashCode(callSuper = true)
 @Builder
 public class User extends AbstractUser {
     /**
@@ -28,25 +31,20 @@ public class User extends AbstractUser {
     private String mail;
 
     /**
-     * Password of the user (for auth)
-     */
-    private String password;
-
-    /**
-     * Indicate if {@link #password} is in hashed form or in plain text
-     */
-    private boolean psw_hash;
-
-    /**
      * user's date inscription
      */
     private Date inscription;
 
-    private boolean isAdmin = false;
+    /**
+     * infos for the image
+     */
+    private Image img;
+
+    @Default private boolean isAdmin = false;
 
     @Override
     protected void doIsPermitted(final String permission, final Handler<AsyncResult<Boolean>> resultHandler) {
-        resultHandler.handle(Future.succeededFuture("admin".equalsIgnoreCase(permission) ? this.isAdmin : true));
+        resultHandler.handle(Future.succeededFuture(this.isAdmin || "admin".equalsIgnoreCase(permission)));
     }
 
     /**

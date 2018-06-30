@@ -4,7 +4,7 @@
 
     <groupId>fr.esgi.ideal</groupId>
     <artifactId>api-server</artifactId>
-    <version>0.5.0-SNAPSHOT</version>
+    <version>0.6.5-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>api-server</name>
@@ -28,12 +28,18 @@
     </issueManagement>
 
     <properties>
+        <db-path>${project.build.directory}/db-jooq</db-path>
+        <db-jdbc-url>jdbc:hsqldb:file:${db-path};shutdown=true</db-jdbc-url>
+        <!-- maven projet config -->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <!-- Librairies versions -->
         <vertx.version>3.5.1</vertx.version>
+        <liquibase.version>3.5.5</liquibase.version>
+        <jooq.version>3.11.2</jooq.version>
+        <hsqldb.version>2.4.1</hsqldb.version>
     </properties>
 
     <dependencyManagement>
@@ -42,6 +48,13 @@
                 <groupId>io.vertx</groupId>
                 <artifactId>vertx-dependencies</artifactId>
                 <version>${vertx.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.jooq</groupId>
+                <artifactId>jooq-parent</artifactId>
+                <version>${jooq.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -76,10 +89,86 @@
             <version>${vertx.version}</version>
         </dependency>
 
+        <!-- Database -->
+        <dependency>
+            <groupId>io.vertx</groupId>
+            <artifactId>vertx-jdbc-client</artifactId>
+            <version>${vertx.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.liquibase</groupId>
+            <artifactId>liquibase-core</artifactId>
+            <version>${liquibase.version}</version>
+        </dependency>
+        <!--<dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>42.2.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.liquibase.ext</groupId>
+            <artifactId>liquibase-postgresql</artifactId>
+            <version>3.0</version>
+            <!- -in changset : <ext:vacuum/>- ->
+        </dependency>-->
+        <dependency>
+            <groupId>org.hsqldb</groupId>
+            <artifactId>hsqldb</artifactId>
+            <version>2.3.6</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jooq</groupId>
+            <artifactId>jooq</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.jooq</groupId>
+            <artifactId>jooq-meta</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.jooq</groupId>
+            <artifactId>jooq-codegen</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.jooq</groupId>
+            <artifactId>jooq-checker</artifactId>
+            <version>${jooq.version}</version>
+        </dependency>
+
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <version>1.16.20</version>
+        </dependency>
+
+        <!-- Logging -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>1.7.25</version>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>1.2.3</version>
+        </dependency>
+        <dependency>
+            <groupId>org.fusesource.jansi</groupId>
+            <artifactId>jansi</artifactId>
+            <version>1.17.1</version>
+            <scope>runtime</scope>
+            <!-- On Windows machines setting withJansi to true enables ANSI color code interpretation by the Jansi library.
+                 This requires org.fusesource.jansi:jansi:1.8+ on the class path.
+                 Note that Unix-based operating systems such as Linux and Mac OS X support ANSI color codes by default. -->
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>jul-to-slf4j</artifactId>
+            <version>1.7.25</version>
+        </dependency>
+        <dependency>
+            <groupId>com.mattbertolini</groupId>
+            <artifactId>liquibase-slf4j</artifactId>
+            <version>2.0.0</version>
         </dependency>
 
         <!-- Tests -->
@@ -98,9 +187,168 @@
     </dependencies>
 
     <build>
-        <resources><resource><directory>src/main/resources</directory></resource></resources>
-        <testResources><testResource><directory>src/test/resources</directory></testResource></testResources>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
+        <testResources>
+            <testResource>
+                <directory>src/test/resources</directory>
+                <filtering>true</filtering>
+            </testResource>
+        </testResources>
+
+        <!-- // generate DB binding // -->
         <plugins>
+            <plugin>
+                <groupId>org.liquibase</groupId>
+                <artifactId>liquibase-maven-plugin</artifactId>
+                <version>${liquibase.version}</version>
+                <configuration>
+                    <!--<propertyFileWillOverride>true</propertyFileWillOverride>-->
+                    <!--<propertyFile>liquibase/liquibase.properties</propertyFile><!- -src/main/resources/-->
+                    <changeLogFile>liquibase/db-changelog.xml</changeLogFile>
+                    <!--<changeLogFile>src/main/resources/org/liquibase/business_table.xml</changeLogFile>
+                    <driver>oracle.jdbc.driver.OracleDriver</driver>
+                    <url>jdbc:oracle:thin:@tf-appserv-linux:1521:xe</url>
+                    <username>liquibaseTest</username>
+                    <password>pass</password>-->
+                    <promptOnNonLocalDatabase>true</promptOnNonLocalDatabase>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>db_bind_gen</id>
+                        <!--<phase>process-resources</phase>-->
+                        <goals><goal>update</goal></goals>
+                        <phase>generate-sources</phase>
+                        <configuration>
+                            <driver>org.hsqldb.jdbc.JDBCDriver</driver>
+                            <url>${db-jdbc-url}</url>
+                            <username>sa</username>
+                            <password></password>
+                            <changeLogFile>${project.basedir}/src/main/resources/liquibase/db-changelog.xml</changeLogFile>
+                            <promptOnNonLocalDatabase>false</promptOnNonLocalDatabase>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>db_verify</id>
+                        <phase>verify</phase>
+                        <goals><goal>status</goal></goals>
+                    </execution>
+                </executions>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.hsqldb</groupId>
+                        <artifactId>hsqldb</artifactId>
+                        <version>${hsqldb.version}</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+            <plugin>
+                <groupId>org.jooq</groupId>
+                <artifactId>jooq-codegen-maven</artifactId>
+                <version>${jooq.version}</version>
+                <executions>
+                    <execution>
+                        <id>db_bind_build</id>
+                        <goals><goal>generate</goal></goals>
+                        <!--<phase>generate-sources</phase>-->
+                    </execution>
+                </executions>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.hsqldb</groupId>
+                        <artifactId>hsqldb</artifactId>
+                        <version>${hsqldb.version}</version>
+                    </dependency>
+                </dependencies>
+                <configuration><!--view-source:http://www.jooq.org/xsd/jooq-codegen-3.11.0.xsd-->
+                    <jdbc>
+                        <driver>org.hsqldb.jdbc.JDBCDriver</driver>
+                        <url>${db-jdbc-url}</url>
+                        <user>sa</user>
+                        <password></password>
+                        <properties>
+                            <!--<property><key></key><value></value></property>-->
+                        </properties>
+                    </jdbc>
+                    <generator>
+                        <name>org.jooq.codegen.JavaGenerator</name>
+                        <database>
+                            <name>org.jooq.meta.hsqldb.HSQLDBDatabase</name>
+                            <!--<name>org.jooq.meta.postgres.PostgresDatabase</name>
+                            <name>org.jooq.meta.xml.XMLDatabase</name>
+                            <name>org.jooq.meta.extensions.ddl.DDLDatabase</name>-->
+                            <includes>.*</includes>
+                            <excludes>PUBLIC\.DATABASECHANGELOG|PUBLIC\.DATABASECHANGELOGLOCK</excludes>
+                            <!--<inputCatalog>public</inputCatalog> In case your database supports catalogs (e.g. SQL Server) -->
+                            <inputSchema>PUBLIC</inputSchema>
+                            <!--<schemata><schema><inputSchema>SCHEMA1</inputSchema></schema></schemata>-->
+                            <logSlowQueriesAfterSeconds/>
+                        </database>
+                        <generate>
+                            <daos>true</daos>
+                            <comments>true</comments>
+                            <deprecated>false</deprecated>
+                            <deprecationOnUnknownTypes>true</deprecationOnUnknownTypes>
+                            <javaBeansGettersAndSetters>true</javaBeansGettersAndSetters>
+                            <validationAnnotations>true</validationAnnotations>
+                            <javadoc>true</javadoc>
+                            <pojos>true</pojos>
+                            <pojosEqualsAndHashCode>true</pojosEqualsAndHashCode>
+                            <pojosToString>true</pojosToString>
+                            <serializablePojos>true</serializablePojos>
+                            <immutablePojos>true</immutablePojos>
+                            <fluentSetters>true</fluentSetters>
+                            <varargSetters>false</varargSetters>
+                            <generatedAnnotation>true</generatedAnnotation>
+                            <interfaces>true</interfaces>
+                            <immutableInterfaces>true</immutableInterfaces>
+                            <serializableInterfaces>true</serializableInterfaces>
+                            <javaTimeTypes>true</javaTimeTypes>
+                        </generate>
+                        <target>
+                            <packageName>fr.pixel.dao</packageName>
+                            <directory>${project.build.directory}/generated-sources/jooq</directory>
+                            <clean>true</clean>
+                            <encoding>${project.build.sourceEncoding}</encoding>
+                        </target>
+                    </generator>
+                    <!--<configurationFile>${project.basedir}/src/main/resources/jooq-codegen-conf.xml</configurationFile>-->
+                    <logging>INFO</logging>
+                </configuration>
+            </plugin>
+
+            <!-- // include other resources in Jar // -->
+            <!--<plugin> TODO: semble obsolète avec maven
+                <groupId>net.tomred</groupId>
+                <artifactId>liquibase-validator-maven-plugin</artifactId>
+                <version>1.7.0</version>
+                <configuration>
+                    <dir>${project.build.sourceDirectory}/../resources/liquibase</dir>
+                    <!- -<ignore>
+                        <param>target\</param>
+                        <param>src\main\resources\liquibase\test.xml</param>
+                    </ignore>- ->
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>db_validate</id>
+                        <goals><goal>validate</goal></goals>
+                    </execution>
+                </executions>
+            </plugin>-->
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>3.1.0</version>
+                <configuration>
+                    <descriptors>
+                        <descriptor>src/assembly/liquibase_assembly.xml</descriptor>
+                    </descriptors>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
@@ -115,6 +363,7 @@
                 </configuration>
             </plugin>
 
+            <!-- // Executable Jar // -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
@@ -127,8 +376,9 @@
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                                     <manifestEntries>
-                                        <Main-Class>io.vertx.core.Launcher</Main-Class>
-                                        <Main-Verticle>fr.esgi.ideal.ApiRestVerticle</Main-Verticle>
+                                        <Main-Class>fr.esgi.ideal.AppLauncher</Main-Class>
+                                        <Main-Verticle>fr.esgi.ideal.AppStartVerticle</Main-Verticle>
+                                        <!--<Main-Command>run</Main-Command>-->
                                     </manifestEntries>
                                 </transformer>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
@@ -156,6 +406,10 @@
                             <arguments>
                                 <argument>-jar</argument>
                                 <argument>${project.build.directory}/${project.artifactId}-${project.version}-fat.jar</argument>
+                                <!--<argument>list</argument>-->
+                                <!--<argument>run</argument>
+                                <argument>- -help</argument>-->
+                                <!--<argument>-version</argument>-->
                             </arguments>
                         </configuration>
                     </execution>

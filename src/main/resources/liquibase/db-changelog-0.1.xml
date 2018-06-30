@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
+
+    <changeSet id="init-db" author="Tristan">
+        <comment>Initial tables for mapping API's endpoint</comment>
+        <createTable tableName="articles">
+            <column name="id" type="bigint" autoIncrement="true"><constraints nullable="false" primaryKey="true"/></column>
+            <column name="name" type="varchar(100)" encoding="utf-8"><constraints nullable="false"/></column>
+            <column name="image" type="integer"/>
+            <column name="description" type="varchar(250)" encoding="utf-8"/>
+            <column name="price" type="decimal" defaultValueNumeric="0.0"/>
+            <column name="created" type="timestamp"/>
+            <column name="updated" type="timestamp"/>
+        </createTable>
+        <createTable tableName="users">
+            <column name="id" type="bigint" autoIncrement="true"><constraints nullable="false" primaryKey="true"/></column>
+            <column name="pseudo" type="varchar(50)" encoding="utf-8"><constraints nullable="false" unique="true"/></column>
+            <column name="image" type="integer"/>
+            <column name="mail" type="varchar(100)" encoding="utf-8"><constraints nullable="false" unique="true"/></column>
+            <column name="created" type="timestamp"/>
+            <column name="admin" type="boolean" defaultValueBoolean="false"><constraints nullable="false"/></column>
+            <!--<column name="bio" type="varchar(500)" encoding="utf-8"/>-->
+        </createTable>
+        <createTable tableName="partners" remarks="Commercial partners">
+            <column name="id" type="bigint" autoIncrement="true"><constraints nullable="false" primaryKey="true"/></column>
+            <column name="name" type="varchar(100)" encoding="utf-8"><constraints nullable="false"/></column>
+            <column name="description" type="varchar(500)" encoding="utf-8"><constraints nullable="false"/></column>
+            <column name="image" type="integer"/>
+        </createTable>
+        <createTable tableName="ads" remarks="Ads shown on website">
+            <column name="id" type="bigint" autoIncrement="true"><constraints nullable="false" primaryKey="true"/></column>
+            <column name="title" type="varchar(100)" encoding="utf-8"/>
+            <column name="image" type="integer"/>
+        </createTable>
+        <!--<tagDatabase tag="0.1" />-->
+    </changeSet>
+</databaseChangeLog>
