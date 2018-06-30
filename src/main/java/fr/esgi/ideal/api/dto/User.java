@@ -1,4 +1,4 @@
-package fr.esgi.ideal.dto;
+package fr.esgi.ideal.api.dto;
 
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
@@ -11,6 +11,7 @@ import lombok.Builder;
 import lombok.Builder.Default;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.Setter;
 
 import java.util.Date;
 
@@ -31,19 +32,14 @@ public class User extends AbstractUser {
     private String mail;
 
     /**
-     * Password of the user (for auth)
-     */
-    private String password;
-
-    /**
-     * Indicate if {@link #password} is in hashed form or in plain text
-     */
-    private boolean psw_hash;
-
-    /**
      * user's date inscription
      */
     private Date inscription;
+
+    /**
+     * infos for the image
+     */
+    private Image img;
 
     @Default private boolean isAdmin = false;
 

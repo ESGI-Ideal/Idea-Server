@@ -173,6 +173,24 @@ paths:
           description: Partner's ID not exist
       tags:
         - partner
+  /partner/{id}:
+    get:
+      summary: image of an partner
+      description: ''
+      operationId: getPartnerImg
+      parameters:
+        - $ref: '#/components/parameters/id'
+      responses:
+        '200':
+          description: Image of the partner if available
+          content:
+            application/json:
+                schema:
+                  $ref: '#/components/schemas/Partner'
+        default:
+          description: Partner's ID not exist
+      tags:
+        - partner
   /ad:
     get:
       summary: ads list
@@ -267,17 +285,18 @@ components:
         id:
           type: integer
           format: int64
+          minimum: 0
         #username:
         #  type: string
         #firstName:
         #  type: string
         #lastName:
         #  type: string
+        img:
+          type: object
+          $ref: "#/components/schemas/Image"
         email:
           type: string
-        password:
-          type: string
-          format: password
         inscription:
           type: string
           format: date
@@ -309,8 +328,12 @@ components:
         id:
           type: integer
           format: int64
+          minimum: 0
         name:
           type: string
+        img:
+          type: object
+          $ref: "#/components/schemas/Image"
         created:
           type: string
           format: date-time
@@ -328,14 +351,39 @@ components:
         id:
           type: integer
           format: int64
+          minimum: 0
         name:
           type: string
-        img_url:
+        img:
+          type: object
+          $ref: "#/components/schemas/Image"
+        description:
           type: string
-        img_data:
+    Ad:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          minimum: 0
+        description:
           type: string
-          format: byte
-          description: ...
+          description: Short tip about the ad
+        img:
+          type: object
+          $ref: "#/components/schemas/Image"
+    Image:
+      type: object
+      description: Information about an image
+      properties:
+        height:
+          type: integer
+          format: int32
+          minimum: 0
+        width:
+          type: integer
+          format: int32
+          minimum: 0
   responses:
     #'202':
     #    description: 'OK'

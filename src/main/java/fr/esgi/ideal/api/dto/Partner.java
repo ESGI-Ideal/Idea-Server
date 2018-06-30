@@ -1,4 +1,4 @@
-package fr.esgi.ideal.dto;
+package fr.esgi.ideal.api.dto;
 
 import lombok.Builder;
 import lombok.Data;
@@ -19,12 +19,12 @@ public class Partner {
     private String name;
 
     /**
-     * URL of the "logo"
+     * Infos on image
      */
-    private URI img_url;
+    private Image img;
 
     /**
-     * Image of the "logo"
+     * Description about the partner
      */
-    private byte[] description;
+    private String description;
 }
