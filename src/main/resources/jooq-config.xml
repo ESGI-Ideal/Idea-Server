@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<settings xmlns="http://www.jooq.org/xsd/jooq-runtime-3.11.2.xsd">
+    <mapConstructorParameterNames>true</mapConstructorParameterNames>
+    <mapJPAAnnotations>false</mapJPAAnnotations>
+    <!--<debugInfoOnStackTrace>false</debugInfoOnStackTrace>-->
+    <backslashEscaping>DEFAULT</backslashEscaping>
+    <statementType>PREPARED_STATEMENT</statementType>
+    <renderSchema>false</renderSchema>
+    <renderFormatted>true</renderFormatted>
+    <paramCastMode>DEFAULT</paramCastMode>
+    <!--<paramType></paramType>-->
+    <!--<maxRows></maxRows>-->
+    <!--<queryTimeout></queryTimeout>-->
+    <reflectionCaching>false</reflectionCaching>
+    <cacheRecordMappers>false</cacheRecordMappers>
+    <!--<delimiter>;</delimiter>-->
+
+    <executeLogging>true</executeLogging>
+    <executeDeleteWithoutWhere>THROW</executeDeleteWithoutWhere>
+    <executeUpdateWithoutWhere>THROW</executeUpdateWithoutWhere>
+    <executeWithOptimisticLocking>false</executeWithOptimisticLocking>
+    <executeWithOptimisticLockingExcludeUnversioned>true</executeWithOptimisticLockingExcludeUnversioned>
+
+    <fetchWarnings>true</fetchWarnings>
+    <throwExceptions>THROW_ALL</throwExceptions>
+    <parseUnknownFunctions>FAIL</parseUnknownFunctions>
+    <parseUnsupportedSyntax>FAIL</parseUnsupportedSyntax>
+    <parseWithMetaLookups>THROW_ON_FAILURE</parseWithMetaLookups>
+</settings>

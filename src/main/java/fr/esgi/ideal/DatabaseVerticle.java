@@ -1,8 +1,13 @@
 package fr.esgi.ideal;
 
+import fr.pixel.dao.tables.daos.AdsDao;
+import fr.pixel.dao.tables.daos.ArticlesDao;
+import fr.pixel.dao.tables.daos.PartnersDao;
+import fr.pixel.dao.tables.daos.UsersDao;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
-import io.vertx.core.json.JsonArray;
+import io.vertx.core.eventbus.Message;
+import io.vertx.core.json.Json;
 import io.vertx.ext.jdbc.JDBCClient;
 import io.vertx.ext.sql.SQLConnection;
 import liquibase.Contexts;
@@ -12,9 +17,14 @@ import liquibase.exception.LiquibaseException;
 import liquibase.resource.ClassLoaderResourceAccessor;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import org.jooq.DSLContext;
+import org.jooq.SQLDialect;
+import org.jooq.conf.Settings;
+import org.jooq.impl.DSL;
 
-import java.util.Optional;
+import java.sql.Connection;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 @Slf4j
@@ -25,6 +35,8 @@ public class DatabaseVerticle extends AbstractVerticle {
     public static final String DB_PARTNER_GET_BY_ID = "ApiDatabase_Partner_GetById";
     public static final String DB_USER_GET_ALL = "ApiDatabase_User_GetAll";
     public static final String DB_USER_GET_BY_ID = "ApiDatabase_User_GetById";
+    public static final String DB_USER_AUTH_BY_NAME = "ApiDatabase_User_AuthByName";
+    public static final String DB_USER_AUTH_USER_EXIST = "ApiDatabase_User_AuthTestUserExist";
     public static final String DB_AD_GET_ALL = "ApiDatabase_Ads_GetAll";
     public static final String DB_AD_GET_BY_ID = "ApiDatabse_Ads_GetById";
 
@@ -61,60 +73,27 @@ public class DatabaseVerticle extends AbstractVerticle {
 
     private void initBusConsummers() {
         /* Articles */
-        this.vertx.eventBus().<Void>consumer(DB_ARTICLE_GET_ALL, msg -> this.client.query("Select * from articles", result -> {
-            if(result.succeeded())
-                msg.reply(result.result().getResults());
-            else
-                msg.fail(-1, result.cause().getMessage());
-        }));
-        this.vertx.eventBus().<Long>consumer(DB_ARTICLE_GET_BY_ID, msg -> this.client.queryWithParams("Select * from articles where id=?", new JsonArray().add(msg.body()), result -> {
-            if(result.succeeded()) {
-                if(result.result().getNumRows() > 0)
-                    msg.reply(Optional.of(result.result().getResults().get(0)));
-                else
-                    msg.reply(Optional.empty());
-            } else
-                msg.fail(-1, result.cause().getMessage());
-        }));
+        this.vertx.eventBus().<Void>consumer(DB_ARTICLE_GET_ALL,
+                                             msg -> execSql(msg, dsl -> new ArticlesDao(dsl.configuration()).findAll()));
+        this.vertx.eventBus().<Long>consumer(DB_ARTICLE_GET_BY_ID,
+                                             msg -> execSql(msg, dsl -> new ArticlesDao(dsl.configuration()).findById(msg.body())));
         /* Partners */
-        this.vertx.eventBus().<Void>consumer(DB_PARTNER_GET_ALL, msg -> this.client.query("select * from partners", result -> {
-            if(result.succeeded())
-                msg.reply(result.result().getResults());
-            else
-                msg.fail(-1, result.cause().getMessage());
-        }));
-        this.vertx.eventBus().<Long>consumer(DB_PARTNER_GET_BY_ID, msg -> this.client.querySingleWithParams("select * from partners where id=? limit 1", new JsonArray().add(msg.body()), result -> {
-            if(result.succeeded())
-                msg.reply(Optional.ofNullable(result.result()));
-            else
-                msg.fail(-1, result.cause().getMessage());
-        }));
+        this.vertx.eventBus().<Void>consumer(DB_PARTNER_GET_ALL,
+                                             msg -> execSql(msg, dsl -> new PartnersDao(dsl.configuration()).findAll()));
+        this.vertx.eventBus().<Long>consumer(DB_PARTNER_GET_BY_ID,
+                                             msg -> execSql(msg, dsl -> new PartnersDao(dsl.configuration()).findById(msg.body())));
         /* Users */
-        this.vertx.eventBus().<Void>consumer(DB_USER_GET_ALL, msg -> this.client.query("select * from users", result -> {
-            if(result.succeeded())
-                msg.reply(result.result().getResults());
-            else
-                msg.fail(-1, result.cause().getMessage());
-        }));
-        this.vertx.eventBus().<Long>consumer(DB_USER_GET_BY_ID, msg -> this.client.querySingleWithParams("select * from users where id=? limit 1", new JsonArray().add(msg.body()), result -> {
-            if(result.succeeded())
-                msg.reply(Optional.ofNullable(result.result()));
-            else
-                msg.fail(-1, result.cause().getMessage());
-        }));
+        this.vertx.eventBus().<Void>consumer(DB_USER_GET_ALL,
+                                             msg -> execSql(msg, dsl -> new UsersDao(dsl.configuration()).findAll()));
+        this.vertx.eventBus().<Long>consumer(DB_USER_GET_BY_ID,
+                                             msg -> execSql(msg, dsl -> new UsersDao(dsl.configuration()).fetchOneById(msg.body())));
         /* Ads */
-        this.vertx.eventBus().<Void>consumer(DB_AD_GET_ALL, msg -> this.client.query("select * from ads", result -> {
-            if(result.succeeded())
-                msg.reply(result.result().getResults());
-            else
-                msg.fail(-1, result.cause().getMessage());
-        }));
-        this.vertx.eventBus().<Long>consumer(DB_AD_GET_BY_ID, msg -> this.client.querySingleWithParams("select * from ads where id=? limit 1", new JsonArray().add(msg.body()), result -> {
-            if(result.succeeded())
-                msg.reply(Optional.ofNullable(result.result()));
-            else
-                msg.fail(-1, result.cause().getMessage());
-        }));
+        this.vertx.eventBus().<Void>consumer(DB_AD_GET_ALL,
+                                             msg -> execSql(msg, dsl -> new AdsDao(dsl.configuration()).findAll()));
+        this.vertx.eventBus().<Long>consumer(DB_AD_GET_BY_ID,
+                                             msg -> execSql(msg, dsl -> new AdsDao(dsl.configuration()).fetchOneById(msg.body())));
+        /* Authentification */
+        //TODO
     }
 
     private /*static*/ Future<Void> startLiquibase = Future.future();
@@ -161,5 +140,31 @@ public class DatabaseVerticle extends AbstractVerticle {
             future.complete();
             //startLiquibase.updateAndGet(prev -> Future.<Void>future().setHandler(completer));
         }
+    }
+
+    private static Settings jqConf;
+    private static SQLDialect jqDialect;
+
+    private synchronized DSLContext mapDslContext(final Connection connection) {
+        if(jqConf == null)
+            jqConf = new Settings();
+            //jqConf = JAXB.unmarshal(this.getClass().getClassLoader().getResourceAsStream("jooq-config.xml"), Settings.class);
+            //settings.setStatementType(StatementType.STATIC_STATEMENT);
+        if(jqDialect == null)
+            jqDialect = SQLDialect.valueOf(this.config().getString("", SQLDialect.DEFAULT.toString()));
+        return (connection==null)
+                ? DSL.using(jqDialect,  jqConf)
+                : DSL.using(connection, jqDialect, jqConf);
+    }
+
+    private <M> void execSql(@NonNull final Message<M> msg, @NonNull final Function<DSLContext, ?> getter) {
+        this.client.getConnection(result -> {
+            if (result.succeeded()) {
+                final Object tmp = getter.apply(this.mapDslContext(result.result().unwrap()));
+                result.result().close();
+                msg.reply(Json.encode(tmp));
+            } else
+                msg.fail(-1, result.cause().getMessage());
+        });
     }
 }

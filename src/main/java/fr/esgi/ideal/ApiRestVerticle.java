@@ -2,6 +2,7 @@ package fr.esgi.ideal;
 
 import fr.esgi.ideal.api.ApiAd;
 import fr.esgi.ideal.api.ApiArticle;
+import fr.esgi.ideal.api.ApiAuth;
 import fr.esgi.ideal.api.ApiPartner;
 import fr.esgi.ideal.api.ApiUser;
 import io.vertx.core.AbstractVerticle;
@@ -146,7 +147,7 @@ public class ApiRestVerticle extends AbstractVerticle {
         routerFactory.addHandlerByOperationId("getUsers", api::getAll);
         routerFactory.addHandlerByOperationId("getUser", api::get);
         //getCurrentUser
-        ///final ApiAuth auth = new ApiAuth(api);
+        final ApiAuth auth = new ApiAuth(eventBus);
         /*routerFactory.addSecurityHandler("OAuth2", new AuthHandler() {
             @Override
             public AuthHandler addAuthority(String authority) {
@@ -171,10 +172,10 @@ public class ApiRestVerticle extends AbstractVerticle {
             }
         });*/
         ///TODO: re-enable authentication
-        ///routerFactory.addHandlerByOperationId("oauth2Token", auth::token);
-        ///routerFactory.addSecurityHandler("OAuth2", auth::prepare_oauth);
-        ///routerFactory.addSecuritySchemaScopeValidator("OAuth2", "user", auth::check_scope_user);
-        ///routerFactory.addSecuritySchemaScopeValidator("OAuth2", "admin", auth::check_scope_admin);
+        routerFactory.addHandlerByOperationId("oauth2Token", auth::token);
+        routerFactory.addSecurityHandler("OAuth2", auth::prepare_oauth);
+        routerFactory.addSecuritySchemaScopeValidator("OAuth2", "user", auth::check_scope_user);
+        routerFactory.addSecuritySchemaScopeValidator("OAuth2", "admin", auth::check_scope_admin);
     }
 
     private static void addHandlePartner(@NonNull final EventBus eventBus, @NonNull final OpenAPI3RouterFactory routerFactory) {
