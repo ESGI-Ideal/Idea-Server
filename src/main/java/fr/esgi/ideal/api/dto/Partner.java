@@ -3,8 +3,6 @@ package fr.esgi.ideal.api.dto;
 import lombok.Builder;
 import lombok.Data;
 
-import java.net.URI;
-
 @Data
 @Builder
 public class Partner {

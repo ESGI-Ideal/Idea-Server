@@ -4,12 +4,7 @@ import fr.pixel.dao.tables.interfaces.IAds;
 import fr.pixel.dao.tables.interfaces.IArticles;
 import fr.pixel.dao.tables.interfaces.IPartners;
 import fr.pixel.dao.tables.interfaces.IUsers;
-import fr.pixel.dao.tables.pojos.Articles;
-import fr.pixel.dao.tables.pojos.Users;
 import lombok.experimental.UtilityClass;
-
-import java.util.Calendar;
-import java.util.Optional;
 
 /**
  * Converter of beans between DB DAO and API DTO
