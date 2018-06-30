@@ -173,24 +173,6 @@ paths:
           description: Partner's ID not exist
       tags:
         - partner
-  /partner/{id}:
-    get:
-      summary: image of an partner
-      description: ''
-      operationId: getPartnerImg
-      parameters:
-        - $ref: '#/components/parameters/id'
-      responses:
-        '200':
-          description: Image of the partner if available
-          content:
-            application/json:
-                schema:
-                  $ref: '#/components/schemas/Partner'
-        default:
-          description: Partner's ID not exist
-      tags:
-        - partner
   /ad:
     get:
       summary: ads list
@@ -293,7 +275,6 @@ components:
         #lastName:
         #  type: string
         img:
-          type: object
           $ref: "#/components/schemas/Image"
         email:
           type: string
@@ -332,7 +313,6 @@ components:
         name:
           type: string
         img:
-          type: object
           $ref: "#/components/schemas/Image"
         created:
           type: string
@@ -355,7 +335,6 @@ components:
         name:
           type: string
         img:
-          type: object
           $ref: "#/components/schemas/Image"
         description:
           type: string
@@ -370,7 +349,6 @@ components:
           type: string
           description: Short tip about the ad
         img:
-          type: object
           $ref: "#/components/schemas/Image"
     Image:
       type: object
