@@ -40,6 +40,7 @@
     "fr.esgi.ideal.DatabaseVerticle": {
       "deploymentOptions": {
         "config": {
+          "dialect": "HSQLDB",
           "datasource": {
             "driver_class": "org.hsqldb.jdbcDriver",
             "user": "ideal-api",

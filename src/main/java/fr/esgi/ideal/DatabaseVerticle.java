@@ -1,5 +1,11 @@
 package fr.esgi.ideal;
 
+import com.p6spy.engine.spy.P6ModuleManager;
+import com.p6spy.engine.spy.P6SpyLoadableOptions;
+import com.p6spy.engine.spy.P6SpyOptions;
+import com.p6spy.engine.spy.option.SpyDotProperties;
+import fr.esgi.ideal.internal.FSIO;
+import fr.esgi.ideal.internal.P6Param;
 import fr.pixel.dao.tables.daos.AdsDao;
 import fr.pixel.dao.tables.daos.ArticlesDao;
 import fr.pixel.dao.tables.daos.PartnersDao;
@@ -8,6 +14,7 @@ import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
 import io.vertx.core.eventbus.Message;
 import io.vertx.core.json.Json;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.jdbc.JDBCClient;
 import io.vertx.ext.sql.SQLConnection;
 import liquibase.Contexts;
@@ -22,7 +29,10 @@ import org.jooq.SQLDialect;
 import org.jooq.conf.Settings;
 import org.jooq.impl.DSL;
 
+import java.io.IOException;
 import java.sql.Connection;
+import java.util.InvalidPropertiesFormatException;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -57,7 +67,12 @@ public class DatabaseVerticle extends AbstractVerticle {
         /*.put("driver_class", "org.postgresql.Driver")
         .put("url", "jdbc:postgresql://localhost:5432/ideal?tcpKeepAlive=true&loglevel=debug")
         .put("password", "ideal-pwd")*/
-        this.client = JDBCClient.createShared(this.vertx, this.config().getJsonObject("datasource"));
+        final JsonObject ds = this.config().getJsonObject("datasource");
+        Optional.ofNullable(ds)
+                .ifPresent(obj -> Optional.ofNullable(ds.getString("url"))
+                        .ifPresent(url -> obj.put("url", url.replaceFirst("jdbc:", "jdbc:p6spy:"))));
+        initP6spy(this.config().getString("dialect"), this.vertx.getOrCreateContext().config().getString("name", "ideal-def"));
+        this.client = JDBCClient.createShared(this.vertx, ds);
         //startLiquibase.setHandler(startFuture.completer());
         this.initLiquibase(startFuture/*.completer()*/);
         this.initBusConsummers();
@@ -94,6 +109,52 @@ public class DatabaseVerticle extends AbstractVerticle {
                                              msg -> execSql(msg, dsl -> new AdsDao(dsl.configuration()).fetchOneById(msg.body())));
         /* Authentification */
         //TODO
+    }
+
+    private final static AtomicBoolean toInitP6spy = new AtomicBoolean(true);
+    private synchronized static void initP6spy(final String dialect, @NonNull final String name) throws InvalidPropertiesFormatException { //all calls are synchronous, so in series
+        if(toInitP6spy.compareAndSet(true, false)) { //only the first call will init env
+            if (dialect == null)
+                throw new InvalidPropertiesFormatException("A SQL dialect must be specified");
+            else {
+                try {
+                    System.setProperty(SpyDotProperties.OPTIONS_FILE_PROPERTY, FSIO.getResourceAsExternal("spy.properties").toAbsolutePath().toString());
+                    P6ModuleManager.getInstance().reload(); // make sure to reinit
+                    // clean table plz (we need to make sure that all the configured factories will be re-loaded)
+                    //new DefaultJdbcEventListenerFactory().clearCache();
+
+                    final P6Param params = P6Param.valueOf(dialect);
+                    Optional.ofNullable(P6SpyOptions.getActiveInstance()).ifPresent(instance -> {
+                        Optional.ofNullable(instance.getDriverNames())
+                                .ifPresent(drivers -> drivers.forEach(driver -> log.debug("P6Spy driver : {}", driver)));
+                        log.debug("P6Spy JMX : {}", instance.getJmx());
+                        log.debug("P6Spy JMX prefix = {}", instance.getJmxPrefix());
+                        log.debug("P6Spy reload properties : {}", instance.getReloadProperties());
+                        log.debug("P6Spy StackTrace : {}", instance.getStackTrace());
+                        log.debug("P6Spy AutoFlush : {}", instance.getAutoflush());
+
+                        instance.setDriverlist(params.driverJDBC);
+                        params.dateFormat.ifPresent(instance::setDateformat);
+                        instance.setJmxPrefix(name+"_");
+
+                        log.debug("P6Spy driver-list = {}", instance.getDriverlist());
+                        log.debug("P6Spy DB dialect date format : {}", instance.getDatabaseDialectDateFormat());
+                        log.debug("P6Spy real DataSource : {}", instance.getRealDataSource());
+                    });
+                    System.setProperty(P6Param.P6SpyEnvPrefix+P6SpyOptions.DRIVERLIST, params.driverJDBC);
+                    params.dateFormat.ifPresent(dateformat ->System.setProperty(P6Param.P6SpyEnvPrefix+P6SpyOptions.DATEFORMAT, dateformat));
+                    System.setProperty(P6Param.P6SpyEnvPrefix+P6SpyOptions.JMX_PREFIX, "name"+"_");
+                    //params.URI_base
+                } catch (final IOException e) {
+                    throw new RuntimeException(e); //during jvm init, so no logger and future.fail()
+                } catch(final IllegalArgumentException e) {
+                    throw new InvalidPropertiesFormatException(e);
+                }
+                //driver_class
+            }
+        }
+        //P6Util.forName(driverName);
+        //log.debug("FRAMEWORK USING DRIVER == " + DriverManager.getDriver(url).getClass().getName() + " FOR URL " + url);
     }
 
     private /*static*/ Future<Void> startLiquibase = Future.future();
