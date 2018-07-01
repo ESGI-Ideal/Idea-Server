@@ -46,6 +46,10 @@
             "user": "ideal-api",
             "url": "jdbc:hsqldb:file:db/default",
             "max_pool_size": 30
+          },
+          "liquibase": {
+            "mustSafeToRunUpdate": false,
+            "dropBeforeUpgrade": false
           }
         },
         "instances": 1,

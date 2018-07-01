@@ -1,7 +1,6 @@
 package fr.esgi.ideal;
 
 import com.p6spy.engine.spy.P6ModuleManager;
-import com.p6spy.engine.spy.P6SpyLoadableOptions;
 import com.p6spy.engine.spy.P6SpyOptions;
 import com.p6spy.engine.spy.option.SpyDotProperties;
 import fr.esgi.ideal.internal.FSIO;
@@ -74,7 +73,8 @@ public class DatabaseVerticle extends AbstractVerticle {
         initP6spy(this.config().getString("dialect"), this.vertx.getOrCreateContext().config().getString("name", "ideal-def"));
         this.client = JDBCClient.createShared(this.vertx, ds);
         //startLiquibase.setHandler(startFuture.completer());
-        this.initLiquibase(startFuture/*.completer()*/);
+        this.initLiquibase(this.config().getJsonObject("liquibase", new JsonObject().put("mustSafeToRunUpdate", true).put("forceDrop", false)),
+                           startFuture/*.completer()*/);
         this.initBusConsummers();
         log.debug("Starting complete");
     }
@@ -159,7 +159,7 @@ public class DatabaseVerticle extends AbstractVerticle {
 
     private /*static*/ Future<Void> startLiquibase = Future.future();
     private final static AtomicBoolean toInit = new AtomicBoolean(true);
-    private synchronized void initLiquibase(@NonNull final Future<Void> future) {
+    private synchronized void initLiquibase(@NonNull final JsonObject params, @NonNull final Future<Void> future) {
         if(toInit.compareAndSet(true, false)) {
             log.debug("Choose for init database");
             startLiquibase.setHandler(future.completer());
@@ -175,13 +175,17 @@ public class DatabaseVerticle extends AbstractVerticle {
                                 .forEach(cs -> log.info("Changelog unrun : {} by {} in file {}", cs.getId(), cs.getAuthor(), cs.getFilePath()));
                         if(liquibase.isSafeToRunUpdate())
                             log.info("Liquibase safe to update");
-                        else
+                        else {
                             log.warn("Liquibase not safe to update");
+                            if(params.getBoolean("mustSafeToRunUpdate", true))
+                                throw new IllegalStateException("Database is not safe to update");
+                        }
                         liquibase.update(new Contexts());
                         //liquibase.validate(); //throws if not
                         if(!liquibase.listUnrunChangeSets(null, null).isEmpty()) {
                             log.warn("Failed to upgrade the database!");
-                            if(this.config().getBoolean("dropBeforeUpgrade", false)) {
+                            if(params.getBoolean("dropBeforeUpgrade", false)) {
+                                log.warn("Drop database and re-run upgrade");
                                 liquibase.dropAll();
                                 liquibase.update((Contexts) null);
                                 //no check because dropped
@@ -189,7 +193,7 @@ public class DatabaseVerticle extends AbstractVerticle {
                                 throw new LiquibaseException("All changeSets have not been executed. Missing changeSets to liquibaseExecute !");
                         } //else
                         this.startLiquibase.complete();
-                    } catch(final LiquibaseException e) {
+                    } catch(final LiquibaseException|IllegalStateException e) {
                         log.error("Error while checking/updating the database", e);
                         this.startLiquibase.fail(e);
                     }
