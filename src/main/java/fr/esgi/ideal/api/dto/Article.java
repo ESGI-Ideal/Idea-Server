@@ -39,4 +39,9 @@ public class Article {
      * Infos on image
      */
     private Image img;
+
+    /**
+     * Rate satisfaction for the product by customers
+     */
+    private Integer customerRating;
 }

@@ -4,7 +4,7 @@
 
     <groupId>fr.esgi.ideal</groupId>
     <artifactId>api-server</artifactId>
-    <version>0.6.9-SNAPSHOT</version>
+    <version>0.6.10-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>api-server</name>
@@ -294,13 +294,28 @@
                             <logSlowQueriesAfterSeconds/>
                         </database>
                         <generate>
-                            <daos>true</daos>
+                            <javadoc>true</javadoc>
                             <comments>true</comments>
+                            <commentsOnAttributes>true</commentsOnAttributes>
+                            <commentsOnCatalogs>true</commentsOnCatalogs>
+                            <commentsOnColumns>true</commentsOnColumns>
+                            <commentsOnKeys>true</commentsOnKeys>
+                            <commentsOnLinks>true</commentsOnLinks>
+                            <commentsOnPackages>true</commentsOnPackages>
+                            <commentsOnParameters>true</commentsOnParameters>
+                            <commentsOnQueues>true</commentsOnQueues>
+                            <commentsOnRoutines>true</commentsOnRoutines>
+                            <commentsOnSchemas>true</commentsOnSchemas>
+                            <commentsOnSequences>true</commentsOnSequences>
+                            <commentsOnTables>true</commentsOnTables>
+                            <commentsOnUDTs>true</commentsOnUDTs>
+                            <daos>true</daos>
                             <deprecated>false</deprecated>
                             <deprecationOnUnknownTypes>true</deprecationOnUnknownTypes>
+                            <generatedAnnotation>true</generatedAnnotation>
                             <javaBeansGettersAndSetters>true</javaBeansGettersAndSetters>
                             <validationAnnotations>true</validationAnnotations>
-                            <javadoc>true</javadoc>
+                            <javaTimeTypes>true</javaTimeTypes>
                             <pojos>true</pojos>
                             <pojosEqualsAndHashCode>true</pojosEqualsAndHashCode>
                             <pojosToString>true</pojosToString>
@@ -308,11 +323,12 @@
                             <immutablePojos>true</immutablePojos>
                             <fluentSetters>true</fluentSetters>
                             <varargSetters>false</varargSetters>
-                            <generatedAnnotation>true</generatedAnnotation>
                             <interfaces>true</interfaces>
                             <immutableInterfaces>true</immutableInterfaces>
                             <serializableInterfaces>true</serializableInterfaces>
-                            <javaTimeTypes>true</javaTimeTypes>
+                            <emptyCatalogs>false</emptyCatalogs>
+                            <emptySchemas>false</emptySchemas>
+                            <globalSchemaReferences>false</globalSchemaReferences>
                         </generate>
                         <target>
                             <packageName>fr.pixel.dao</packageName>

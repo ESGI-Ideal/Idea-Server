@@ -7,9 +7,9 @@ import fr.esgi.ideal.internal.FSIO;
 import fr.esgi.ideal.internal.P6Param;
 import fr.esgi.ideal.internal.SqlParam;
 import fr.pixel.dao.tables.daos.AdsDao;
-import fr.pixel.dao.tables.daos.ArticlesDao;
 import fr.pixel.dao.tables.daos.PartnersDao;
 import fr.pixel.dao.tables.daos.UsersDao;
+import fr.pixel.dao.tables.pojos.Articles;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
 import io.vertx.core.eventbus.Message;
@@ -36,6 +36,8 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 import java.util.stream.Stream;
+
+import static fr.pixel.dao.tables.Articles.ARTICLES;
 
 @Slf4j
 public class DatabaseVerticle extends AbstractVerticle {
@@ -103,9 +105,9 @@ public class DatabaseVerticle extends AbstractVerticle {
     private void initBusConsummers() {
         /* Articles */
         this.vertx.eventBus().<Void>consumer(DB_ARTICLE_GET_ALL,
-                                             msg -> execSql(msg, dsl -> new ArticlesDao(dsl.configuration()).findAll()));
+                                             msg -> execSql(msg, dsl -> dsl.selectFrom(ARTICLES).fetchInto(Articles.class)));
         this.vertx.eventBus().<Long>consumer(DB_ARTICLE_GET_BY_ID,
-                                             msg -> execSql(msg, dsl -> new ArticlesDao(dsl.configuration()).findById(msg.body())));
+                                             msg -> execSql(msg, dsl -> dsl.selectFrom(ARTICLES).where(ARTICLES.ID.equal(msg.body())).fetchInto(Articles.class)));
         /* Partners */
         this.vertx.eventBus().<Void>consumer(DB_PARTNER_GET_ALL,
                                              msg -> execSql(msg, dsl -> new PartnersDao(dsl.configuration()).findAll()));

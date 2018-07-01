@@ -36,6 +36,7 @@ public class DbConverter {
                     .updated(null)
                     .description(db.getDescription())
                     .price(null) //TODO
+                    .customerRating(Math.toIntExact(db.getRate()))
                     .img(null) //TODO
                     .build();
             /*if(db.getCreated() != null)
