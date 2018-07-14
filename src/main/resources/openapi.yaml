@@ -325,6 +325,9 @@ components:
         price:
           type: number
           format: float
+        customerRating:
+          type: number
+          format: int32
     Partner:
       type: object
       properties:

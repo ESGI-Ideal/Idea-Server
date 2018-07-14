@@ -49,6 +49,7 @@
     <logger name="com.mchange" level="warn" />
     <logger name="org.hsqldb" level="info" />
     <logger name="fr.esgi.ideal" level="all" />
+    <!--<logger name="com.p6spy" level="info"/>-->
 
     <root level="debug">
         <appender-ref ref="STDOUT" />

@@ -3,7 +3,7 @@
                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
 
-    <changeSet id="init-db" author="Tristan">
+    <changeSet id="01-init-db" author="Tristan">
         <comment>Initial tables for mapping API's endpoint</comment>
         <createTable tableName="articles">
             <column name="id" type="bigint" autoIncrement="true"><constraints nullable="false" primaryKey="true"/></column>
@@ -35,5 +35,16 @@
             <column name="image" type="integer"/>
         </createTable>
         <!--<tagDatabase tag="0.1" />-->
+    </changeSet>
+
+    <changeSet id="01-add-article-rate" author="Tristan">
+        <comment>Add Like/Dislike of articles by users</comment>
+        <renameTable oldTableName="articles" newTableName="articles_data" />
+        <createTable tableName="articles_rates" remarks="Likes and dislikes of user about articles">
+            <column name="article" type="bigint"><constraints nullable="false" primaryKey="true" referencedTableName="articles_data" referencedColumnNames="id" foreignKeyName="articles_rates_articles_data_id"/></column>
+            <column name="user" type="bigint"><constraints nullable="false" primaryKey="true" referencedTableName="articles_data" referencedColumnNames="id" foreignKeyName="articles_rates_users_id"/></column>
+            <column name="adore" type="boolean"><constraints nullable="false"/></column>
+        </createTable>
+        <createView viewName="articles">select articles_data.*, sum(case when adore then 1 else 0 end) as rate from articles_data left join articles_rates on id=article group by id</createView>
     </changeSet>
 </databaseChangeLog>

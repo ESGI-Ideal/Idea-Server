@@ -40,11 +40,16 @@
     "fr.esgi.ideal.DatabaseVerticle": {
       "deploymentOptions": {
         "config": {
+          "dialect": "HSQLDB",
           "datasource": {
             "driver_class": "org.hsqldb.jdbcDriver",
             "user": "ideal-api",
             "url": "jdbc:hsqldb:file:db/default",
             "max_pool_size": 30
+          },
+          "liquibase": {
+            "mustSafeToRunUpdate": false,
+            "dropBeforeUpgrade": false
           }
         },
         "instances": 1,

@@ -5,6 +5,7 @@ import fr.esgi.ideal.api.ApiArticle;
 import fr.esgi.ideal.api.ApiAuth;
 import fr.esgi.ideal.api.ApiPartner;
 import fr.esgi.ideal.api.ApiUser;
+import fr.esgi.ideal.internal.FSIO;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
 import io.vertx.core.eventbus.EventBus;
@@ -44,7 +45,7 @@ public class ApiRestVerticle extends AbstractVerticle {
                     req.response().setStatusCode(500).end(async.cause().getMessage());
             });
         });*/
-        OpenAPI3RouterFactory.create(vertx, "src/main/resources/openapi.yaml", ar -> {
+        OpenAPI3RouterFactory.create(vertx, FSIO.getResourceAsExternal("openapi.yaml").toString(), ar -> {
             if(ar.failed()) {
                 // Something went wrong during router factory initialization
                 startFuture.fail(ar.cause());
