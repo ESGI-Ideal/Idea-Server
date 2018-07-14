@@ -4,7 +4,7 @@
 
     <groupId>fr.esgi.ideal</groupId>
     <artifactId>api-server</artifactId>
-    <version>0.7.1-SNAPSHOT</version>
+    <version>0.7.3-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>api-server</name>
@@ -30,6 +30,9 @@
     <properties>
         <db-path>${project.build.directory}/db-jooq</db-path>
         <db-jdbc-url>jdbc:hsqldb:file:${db-path};shutdown=true</db-jdbc-url>
+        <vertx.verticle>fr.esgi.ideal.AppStartVerticle</vertx.verticle><!--When use, `Main-Class=io.vertx.core.Launcher`-->
+        <vertx.launcher>fr.esgi.ideal.AppLauncher</vertx.launcher>
+        <!--<vertx.config>api-conf.json</vertx.config>--><!--${basedir}/src/main/${project.artifactId}.[json,yaml,yml]-->
         <!-- maven projet config -->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -387,57 +390,42 @@
                 </configuration>
             </plugin>
 
-            <!-- // Executable Jar // -->
+            <!-- // Build & Executable Jar // -->
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-                <version>3.1.1</version>
+                <groupId>io.fabric8</groupId>
+                <artifactId>vertx-maven-plugin</artifactId>
+                <version>1.0.13</version>
                 <executions>
                     <execution>
-                        <phase>package</phase>
-                        <goals><goal>shade</goal></goals>
-                        <configuration>
-                            <transformers>
-                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <manifestEntries>
-                                        <Main-Class>fr.esgi.ideal.AppLauncher</Main-Class>
-                                        <Main-Verticle>fr.esgi.ideal.AppStartVerticle</Main-Verticle>
-                                        <!--<Main-Command>run</Main-Command>-->
-                                    </manifestEntries>
-                                </transformer>
-                                <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
-                                    <resource>META-INF/services/io.vertx.core.spi.VerticleFactory</resource>
-                                </transformer>
-                            </transformers>
-                            <artifactSet/>
-                            <outputFile>${project.build.directory}/${project.artifactId}-${project.version}-fat.jar</outputFile>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>exec-maven-plugin</artifactId>
-                <version>1.6.0</version>
-                <executions>
-                    <execution>
-                        <id>run-app</id><!-- run the application using the fat jar -->
+                        <id>vmp</id>
                         <goals>
-                            <goal>exec</goal>
+                            <goal>initialize</goal>
+                            <goal>package</goal>
                         </goals>
-                        <configuration>
-                            <executable>java</executable>
-                            <arguments>
-                                <argument>-jar</argument>
-                                <argument>${project.build.directory}/${project.artifactId}-${project.version}-fat.jar</argument>
-                                <!--<argument>list</argument>-->
-                                <!--<argument>run</argument>
-                                <argument>- -help</argument>-->
-                                <!--<argument>-version</argument>-->
-                            </arguments>
-                        </configuration>
                     </execution>
                 </executions>
+                <configuration>
+                    <redeploy>false</redeploy>
+                    <redeployScanPeriod>4000</redeployScanPeriod>
+                    <redeployGracePeriod>10000</redeployGracePeriod>
+                    <redeployTerminationPeriod>5500</redeployTerminationPeriod>
+                    <!--<workDirectory></workDirectory>--><!--default: vertx.directory=${project.basedir}-->
+                    <serviceProviderCombination>combine</serviceProviderCombination>
+                    <attach>true</attach>
+                    <!--<classifier>fat</classifier>-->
+                    <skipScmMetadata>false</skipScmMetadata>
+                    <debugPort>5005</debugPort>
+                    <debugSuspend>true</debugSuspend>
+                    <!--<jvmArgs>
+                        <jvmArg>-Xms512m</jvmArg>
+                        <jvmArg>-Xmx1024m</jvmArg>
+                    </jvmArgs>-->
+                    <!--<runArgs>
+                        <!- -<runArg>list</runArg>- ->
+                        <!- -<runArg>- -help</runArg>- ->
+                        <!- -<runArg>-version</runArg>- ->
+                    </runArgs>-->
+                </configuration>
             </plugin>
         </plugins>
     </build>
