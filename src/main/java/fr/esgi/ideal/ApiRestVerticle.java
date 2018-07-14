@@ -45,7 +45,9 @@ public class ApiRestVerticle extends AbstractVerticle {
                     req.response().setStatusCode(500).end(async.cause().getMessage());
             });
         });*/
-        OpenAPI3RouterFactory.create(vertx, FSIO.getResourceAsExternal("openapi.yaml").toString(), ar -> {
+        OpenAPI3RouterFactory.create(vertx, FSIO.getResourcesYamlsMergedAsExternal(
+                "openapi.yaml", "openapi-ads.yml", "openapi-article.yml", "openapi-partner.yml", "openapi-user.yml"
+        ).toString(), ar -> {
             if(ar.failed()) {
                 // Something went wrong during router factory initialization
                 startFuture.fail(ar.cause());
