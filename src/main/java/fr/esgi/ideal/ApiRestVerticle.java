@@ -14,14 +14,20 @@ import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.web.Route;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.api.contract.RouterFactoryOptions;
 import io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory;
 import io.vertx.ext.web.handler.CorsHandler;
+import io.vertx.ext.web.handler.FaviconHandler;
+import io.vertx.ext.web.handler.LoggerHandler;
+import io.vertx.ext.web.handler.ResponseTimeHandler;
+import io.vertx.ext.web.handler.TimeoutHandler;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.function.BiConsumer;
@@ -92,18 +98,24 @@ public class ApiRestVerticle extends AbstractVerticle {
                     addHandleRoot(routerFactory);
                     //part_auth(routerFactory);
                     //routerFactory.addHandlerByOperationId("doSearch", routingContext -> {}); //TODO
-                    /*routerFactory.addSecurityHandler("api_cors", context -> {
+                }
+                //routerFactory.addSecurityHandler("jwt_auth", JWTAuthHandler.create(jwtAuthProvider));
+                final Router router = Router.router(this.vertx);
+                addFaviconHandler(router.route()
+                    .handler(LoggerHandler.create(/*TODO*/)))
+                    .handler(CorsHandler.create("*")
+                        //.allowedHeaders(new HashSet<>(Arrays.asList("x-requested-with", "Access-Control-Allow-Origin", "origin", "Content-Type", "accept", "X-PINGARUNER")))
+                        .allowedMethods(new HashSet<>(Arrays.asList(HttpMethod.values()))))
+                    /*.handler(context -> {
                         context.response()
                                 .putHeader("Access-Control-Allow-Origin", "*")
                                 .putHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
                         context.next();
-                    });*/
-                    routerFactory.addSecurityHandler("api_cors", CorsHandler.create("*")
-                            //.allowedHeaders(new HashSet<>(Arrays.asList("x-requested-with", "Access-Control-Allow-Origin", "origin", "Content-Type", "accept", "X-PINGARUNER")))
-                            .allowedMethods(new HashSet<>(Arrays.asList(HttpMethod.values()))));
-                }
-                //routerFactory.addSecurityHandler("jwt_auth", JWTAuthHandler.create(jwtAuthProvider));
-                final Router router = routerFactory.getRouter();
+                    })*/
+                    .handler(ResponseTimeHandler.create())
+                    .handler(TimeoutHandler.create(/*TODO*/));
+                    //.handler(BodyHandler.create(/*TODO*/));
+                router.mountSubRouter("/", routerFactory.getRouter());
                 /*{
                     final Logger logger = LoggerFactory.getLogger(this.getClass().getSimpleName());
                     router.getRoutes().forEach(route -> {logger.info(route.toString());});
@@ -220,4 +232,12 @@ public class ApiRestVerticle extends AbstractVerticle {
         routerFactory.addHandlerByOperationId("getUserById", routingContext -> ifId(routingContext, (resp, id) -> resp.end(Json.encode(other))));
     }*/
 
+    private static Route addFaviconHandler(@NonNull final Route route) {
+        try {
+            route.handler(FaviconHandler.create(FSIO.getResourceAsExternal("favicon.ico").toString()));
+        } catch(final IOException e) {
+            log.warn("can't attach favicon", e);
+        }
+        return route;
+    }
 }
