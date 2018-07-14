@@ -39,10 +39,29 @@ public class ApiRestVerticle extends AbstractVerticle {
     private HttpServer httpServer;
 
     @Override
-    public void start(@NonNull Future<Void> startFuture) throws Exception {
+    public void start(@NonNull final Future<Void> startFuture) throws Exception {
         log.debug("Starting verticle ...");
         log.debug("config() = {}", this.config().encodePrettily());
         this.start();
+        this.start_getOpenApiCotroller()
+            .compose(this::start_server)
+            .compose(x -> {
+                this.httpServer = x;
+                return Future.<Void>succeededFuture();
+            })
+            .setHandler(startFuture);
+        log.debug("Starting complete");
+    }
+
+    @Override
+    public void stop(@NonNull final Future<Void> stopFuture) throws Exception {
+        log.debug("Stopping verticle");
+        this.httpServer.close(stopFuture.completer());
+    }
+
+    private Future<HttpServer> start_server(@NonNull final Router OPAI3Router) {
+        // Spec loaded with success
+        final Future<HttpServer> future = Future.future();
         /*router.get("/sql").handler(req -> {
             this.vertx.eventBus().<List<JsonArray>>send(DatabaseVerticle.DB_QUERY, "SELECT \"its OK\"", async -> {
                 if(async.succeeded())
@@ -51,15 +70,35 @@ public class ApiRestVerticle extends AbstractVerticle {
                     req.response().setStatusCode(500).end(async.cause().getMessage());
             });
         });*/
-        OpenAPI3RouterFactory.create(vertx, FSIO.getResourcesYamlsMergedAsExternal(
-                "openapi.yaml", "openapi-ads.yml", "openapi-article.yml", "openapi-partner.yml", "openapi-user.yml"
-        ).toString(), ar -> {
-            if(ar.failed()) {
-                // Something went wrong during router factory initialization
-                startFuture.fail(ar.cause());
-            } else/*if(ar.succeeded())*/ {
-                // Spec loaded with success
-                final OpenAPI3RouterFactory routerFactory = ar.result();
+        final Router router = Router.router(this.vertx);
+        addFaviconHandler(router.route()
+                .handler(LoggerHandler.create(/*TODO*/)))
+                .handler(CorsHandler.create("*")
+                        //.allowedHeaders(new HashSet<>(Arrays.asList("x-requested-with", "Access-Control-Allow-Origin", "origin", "Content-Type", "accept", "X-PINGARUNER")))
+                        .allowedMethods(new HashSet<>(Arrays.asList(HttpMethod.values()))))
+                /*.handler(context -> {
+                    context.response()
+                            .putHeader("Access-Control-Allow-Origin", "*")
+                            .putHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+                    context.next();
+                })*/
+                .handler(ResponseTimeHandler.create())
+                .handler(TimeoutHandler.create(/*TODO*/));
+        //.handler(BodyHandler.create(/*TODO*/));
+        router.mountSubRouter("/", OPAI3Router);
+        //router.route("/*").handler(routCtx -> routCtx.fail(400)); //others paths
+        this.vertx.createHttpServer()
+                .requestHandler(router::accept)
+                .listen(this.config().getInteger("http.port", 8080), result -> future.completer());
+        return future;
+    }
+
+    private Future<Router> start_getOpenApiCotroller() {
+        final Future<Router> future = Future.future();
+        try {
+            OpenAPI3RouterFactory.create(vertx, FSIO.getResourcesYamlsMergedAsExternal(
+                    "openapi.yaml", "openapi-ads.yml", "openapi-article.yml", "openapi-partner.yml", "openapi-user.yml"
+            ).toString(), ar -> future.handle(ar.map(routerFactory -> {
                 {
                     // Create and mount options to router factory
                     final RouterFactoryOptions options = new RouterFactoryOptions()
@@ -91,48 +130,21 @@ public class ApiRestVerticle extends AbstractVerticle {
                         // Handle failure
                     });*/
                     Stream.<BiConsumer<EventBus, OpenAPI3RouterFactory>>of(ApiRestVerticle::addHandleArticle,
-                                                                           ApiRestVerticle::addHandleUser,
-                                                                           ApiRestVerticle::addHandlePartner,
-                                                                           ApiRestVerticle::addHandleAd)
+                            ApiRestVerticle::addHandleUser,
+                            ApiRestVerticle::addHandlePartner,
+                            ApiRestVerticle::addHandleAd)
                             .forEach(fnAdd -> fnAdd.accept(this.vertx.eventBus(), routerFactory));
                     addHandleRoot(routerFactory);
                     //part_auth(routerFactory);
                     //routerFactory.addHandlerByOperationId("doSearch", routingContext -> {}); //TODO
                 }
                 //routerFactory.addSecurityHandler("jwt_auth", JWTAuthHandler.create(jwtAuthProvider));
-                final Router router = Router.router(this.vertx);
-                addFaviconHandler(router.route()
-                    .handler(LoggerHandler.create(/*TODO*/)))
-                    .handler(CorsHandler.create("*")
-                        //.allowedHeaders(new HashSet<>(Arrays.asList("x-requested-with", "Access-Control-Allow-Origin", "origin", "Content-Type", "accept", "X-PINGARUNER")))
-                        .allowedMethods(new HashSet<>(Arrays.asList(HttpMethod.values()))))
-                    /*.handler(context -> {
-                        context.response()
-                                .putHeader("Access-Control-Allow-Origin", "*")
-                                .putHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-                        context.next();
-                    })*/
-                    .handler(ResponseTimeHandler.create())
-                    .handler(TimeoutHandler.create(/*TODO*/));
-                    //.handler(BodyHandler.create(/*TODO*/));
-                router.mountSubRouter("/", routerFactory.getRouter());
-                /*{
-                    final Logger logger = LoggerFactory.getLogger(this.getClass().getSimpleName());
-                    router.getRoutes().forEach(route -> {logger.info(route.toString());});
-                    logger.info(routerFactory.toString());
-                }*/
-                //router.route("/*").handler(routCtx -> routCtx.fail(400)); //others paths
-                this.vertx.createHttpServer()
-                        .requestHandler(router::accept)
-                        .listen(this.config().getInteger("http.port", 8080), result -> {
-                            if(result.succeeded())
-                                startFuture.complete();
-                            else
-                                startFuture.fail(result.cause());
-                        });
-            }
-        });
-        log.debug("Starting complete");
+                return routerFactory.getRouter();
+            })));
+        } catch(final IOException e) {
+            future.fail(e);
+        }
+        return future;
     }
 
     private /*static*/ void addHandleRoot(@NonNull final OpenAPI3RouterFactory routerFactory) {
