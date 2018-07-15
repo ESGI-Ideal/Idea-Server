@@ -1,5 +1,6 @@
 package fr.esgi.ideal.api;
 
+import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.core.Future;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.api.RequestParameters;
@@ -11,14 +12,15 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 public interface SubApi<POJO, DTO> {
-    DTO map(POJO obj);
+    DTO mapTo(POJO obj);
+    POJO mapFrom(DTO obj);
 
     Future<List<POJO>> getAll();
 
     default void getAll(@NonNull final RoutingContext routingContext) {
         this.getAll().setHandler(res -> {
             if(res.succeeded())
-                RouteUtils.send(routingContext, res.result().stream().map(this::map).collect(Collectors.toList()));
+                RouteUtils.send(routingContext, res.result().stream().map(this::mapTo).collect(Collectors.toList()));
             else
                 RouteUtils.error(routingContext, "An error occur on the server");
         });
@@ -32,7 +34,7 @@ public interface SubApi<POJO, DTO> {
             this.get(id.get()).setHandler(res -> {
                 if(res.succeeded()) {
                     if(res.result().isPresent())
-                        RouteUtils.send(routingContext, this.map(res.result().get()));
+                        RouteUtils.send(routingContext, HttpResponseStatus.NO_CONTENT, this.mapTo(res.result().get()));
                     else
                         RouteUtils.error(routingContext, new NoSuchElementException("This ID not exist"));
                 } else
@@ -42,11 +44,24 @@ public interface SubApi<POJO, DTO> {
             RouteUtils.error(routingContext, "The Id passed is null");
     }
 
-    /*void create();
+    //void create();
 
-    void update();
+    //void update();
 
-    void delete();
+    Future<Void> delete(@NonNull final Long id);
 
-    void createOrUpdate();*/
+    default void delete(@NonNull final RoutingContext routingContext) {
+        final Optional<Long> id = Optional.ofNullable(((RequestParameters) routingContext.get("parsedParameters")).pathParameter("id").getLong());
+        if(id.isPresent())
+            this.delete(id.get()).setHandler(res -> {
+                if(res.succeeded()) {
+                    RouteUtils.send(routingContext, null);
+                } else
+                    RouteUtils.error(routingContext, "An error occur on the server");
+            });
+        else
+            RouteUtils.error(routingContext, "The Id passed is null");
+    }
+
+    //void createOrUpdate();
 }

@@ -4,14 +4,22 @@ import fr.pixel.dao.tables.interfaces.IAds;
 import fr.pixel.dao.tables.interfaces.IArticles;
 import fr.pixel.dao.tables.interfaces.IPartners;
 import fr.pixel.dao.tables.interfaces.IUsers;
+import fr.pixel.dao.tables.pojos.Ads;
+import fr.pixel.dao.tables.pojos.Articles;
+import fr.pixel.dao.tables.pojos.Partners;
+import fr.pixel.dao.tables.pojos.Users;
 import lombok.experimental.UtilityClass;
+
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.Date;
 
 /**
  * Converter of beans between DB DAO and API DTO
  */
 @UtilityClass
 public class DbConverter {
-    public static User fromApi(final IUsers db) {
+    public static User toAPI(final IUsers db) {
         if(db != null) {
             final User user = User.builder()
                     .id(db.getId())
@@ -27,7 +35,15 @@ public class DbConverter {
             return null;
     }
 
-    public static Article fromApi(final IArticles db) {
+    public static Users toDB(final User api) {
+        if(api != null) {
+            final Users user = new Users(api.getId(), null, /*api.getImg()*/null, api.getMail(), convert(api.getInscription()), api.isAdmin());
+            return user;
+        } else
+            return null;
+    }
+
+    public static Article toAPI(final IArticles db) {
         if(db != null) {
             final Article article = Article.builder()
                     .id(db.getId())
@@ -48,7 +64,16 @@ public class DbConverter {
             return null;
     }
 
-    public static Partner fromApi(final IPartners db) {
+    public static Articles toDB(final Article api) {
+        if(api != null) {
+            final Articles article = new Articles(api.getId(), api.getName(), /*api.getImg()*/null, api.getDescription(), /*api.getPrice()*/null,
+                    convert(api.getCreated()), convert(api.getUpdated()), (long)api.getCustomerRating());
+            return article;
+        } else
+            return null;
+    }
+
+    public static Partner toAPI(final IPartners db) {
         if(db != null) {
             return Partner.builder()
                     .id(db.getId())
@@ -60,13 +85,37 @@ public class DbConverter {
             return null;
     }
 
-    public static Ad fromApi(final IAds db) {
+    public static Partners toDB(final Partner api) {
+        if(api != null) {
+            final Partners partener = new Partners(api.getId(),api.getName(), api.getDescription(), /*api.getImg()*/null);
+            return partener;
+        } else
+            return null;
+    }
+
+    public static Ad toAPI(final IAds db) {
         if(db != null) {
             return Ad.builder()
                     .id(db.getId())
                     .description(db.getTitle())
                     .img(null) //TODO
                     .build();
+        } else
+            return null;
+    }
+
+    public static Ads toDB(final Ad api) {
+        if(api != null) {
+            final Ads ad = new Ads(api.getId(), api.getDescription(), /*api.getImg()*/null);
+            return ad;
+        } else
+            return null;
+    }
+
+    private static LocalDateTime convert(final Date date) {
+        if(date != null) {
+            return date.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+            //return Instant.ofEpochMilli(date.getTime()).atZone(ZoneId.systemDefault()).toLocalDateTime();
         } else
             return null;
     }

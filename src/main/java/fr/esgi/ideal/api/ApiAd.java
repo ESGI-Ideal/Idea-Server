@@ -26,8 +26,13 @@ public class ApiAd implements SubApi<Ads, Ad> {
     private final static AtomicLong rotate = new AtomicLong(0L);
 
     @Override
-    public Ad map(final Ads obj) {
-        return DbConverter.fromApi(obj);
+    public Ad mapTo(final Ads obj) {
+        return DbConverter.toAPI(obj);
+    }
+
+    @Override
+    public Ads mapFrom(final Ad obj) {
+        return DbConverter.toDB(obj);
     }
 
     @Override
@@ -50,6 +55,20 @@ public class ApiAd implements SubApi<Ads, Ad> {
         this.eventBus.<String>send(DatabaseVerticle.DB_AD_GET_BY_ID, id, asyncMsg -> {
             if(asyncMsg.succeeded())
                 future.complete(Json.decodeValue(asyncMsg.result().body(), new TypeReference<Optional<Ads>>(){}));
+            else {
+                log.error("Get error from bus resquest", asyncMsg.cause());
+                future.fail(asyncMsg.cause());
+            }
+        });
+        return future;
+    }
+
+    @Override
+    public Future<Void> delete(@NonNull final Long id) {
+        final Future<Void> future = Future.future();
+        this.eventBus.<Void>send(DatabaseVerticle.DB_AD_DELETE_BY_ID, id, asyncMsg -> {
+            if(asyncMsg.succeeded())
+                future.complete();
             else {
                 log.error("Get error from bus resquest", asyncMsg.cause());
                 future.fail(asyncMsg.cause());

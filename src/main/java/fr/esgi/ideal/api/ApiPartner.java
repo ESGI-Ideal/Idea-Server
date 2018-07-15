@@ -21,8 +21,13 @@ public class ApiPartner implements SubApi<Partners, Partner> {
     private final EventBus eventBus;
 
     @Override
-    public Partner map(final Partners obj) {
-        return DbConverter.fromApi(obj);
+    public Partner mapTo(final Partners obj) {
+        return DbConverter.toAPI(obj);
+    }
+
+    @Override
+    public Partners mapFrom(final Partner obj) {
+        return DbConverter.toDB(obj);
     }
 
     @Override
@@ -45,6 +50,20 @@ public class ApiPartner implements SubApi<Partners, Partner> {
         this.eventBus.<String>send(DatabaseVerticle.DB_PARTNER_GET_BY_ID, id, asyncMsg -> {
             if(asyncMsg.succeeded())
                 future.complete(Json.decodeValue(asyncMsg.result().body(), new TypeReference<Optional<Partners>>(){}));
+            else {
+                log.error("Get error from bus resquest", asyncMsg.cause());
+                future.fail(asyncMsg.cause());
+            }
+        });
+        return future;
+    }
+
+    @Override
+    public Future<Void> delete(@NonNull final Long id) {
+        final Future<Void> future = Future.future();
+        this.eventBus.<Void>send(DatabaseVerticle.DB_PARTNER_DELETE_BY_ID, id, asyncMsg -> {
+            if(asyncMsg.succeeded())
+                future.complete();
             else {
                 log.error("Get error from bus resquest", asyncMsg.cause());
                 future.fail(asyncMsg.cause());

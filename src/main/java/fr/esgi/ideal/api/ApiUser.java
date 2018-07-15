@@ -21,8 +21,13 @@ public class ApiUser implements SubApi<Users, User> {
     private final EventBus eventBus;
 
     @Override
-    public User map(final Users obj) {
-        return DbConverter.fromApi(obj);
+    public User mapTo(final Users obj) {
+        return DbConverter.toAPI(obj);
+    }
+
+    @Override
+    public Users mapFrom(final User obj) {
+        return DbConverter.toDB(obj);
     }
 
     @Override
@@ -53,7 +58,21 @@ public class ApiUser implements SubApi<Users, User> {
         return future;
     }
 
-    /*
+    @Override
+    public Future<Void> delete(@NonNull final Long id) {
+        final Future<Void> future = Future.future();
+        this.eventBus.<Void>send(DatabaseVerticle.DB_USER_DELETE_BY_ID, id, asyncMsg -> {
+            if(asyncMsg.succeeded())
+                future.complete();
+            else {
+                log.error("Get error from bus resquest", asyncMsg.cause());
+                future.fail(asyncMsg.cause());
+            }
+        });
+        return future;
+    }
+
+  /*
     users.add(User.builder().id(1L).mail("user@mail.com").password("password").build()); //logged
     users.add(User.builder().id(2L).mail("other@mail.com").build()); //other
     users.add(User.builder().id(3L).mail("admin@mail.com").isAdmin(true).password("admin").build()); //logged

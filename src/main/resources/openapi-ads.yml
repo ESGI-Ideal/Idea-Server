@@ -17,6 +17,10 @@ paths:
                   #  $ref: '#/components/schemas/Ad'
       tags:
         - ads
+    #put:
+    #  #TODO
+    #post:
+    #  #TODO
   /ad/{id}:
     get:
       summary: informations on an ad
@@ -35,16 +39,41 @@ paths:
           description: Ad's ID not exist
       tags:
         - ads
+    #patch:
+    #  #TODO
+    delete:
+      description: ''
+      operationId: deleteAd
+      parameters:
+        - $ref: '#/components/parameters/id'
+      responses:
+        '204':
+          description: Delete complete
+          content:
+            application/json:
+                schema:
+                  type: integer
+        default:
+          description: Ad's ID not exist
+      tags:
+        - ads
 
 components:
   schemas:
     Ad:
+      allOf:
+        - type: object
+          required:
+            - id
+          properties:
+            id:
+              type: integer
+              format: int64
+              minimum: 0
+        - $ref: '#/components/schemas/AdContent'
+    AdContent:
       type: object
       properties:
-        id:
-          type: integer
-          format: int64
-          minimum: 0
         description:
           type: string
           description: Short tip about the ad

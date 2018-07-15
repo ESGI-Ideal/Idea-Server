@@ -169,12 +169,14 @@ public class ApiRestVerticle extends AbstractVerticle {
         final ApiArticle api = new ApiArticle(eventBus);
         routerFactory.addHandlerByOperationId("getArticles", api::getAll);
         routerFactory.addHandlerByOperationId("getArticle", api::get);
+        routerFactory.addHandlerByOperationId("deleteArticle", api::delete);
     }
 
     private static void addHandleUser(@NonNull final EventBus eventBus, @NonNull final OpenAPI3RouterFactory routerFactory) {
         final ApiUser api = new ApiUser(eventBus);
         routerFactory.addHandlerByOperationId("getUsers", api::getAll);
         routerFactory.addHandlerByOperationId("getUser", api::get);
+        routerFactory.addHandlerByOperationId("deleteUser", api::delete);
         //getCurrentUser
         final ApiAuth auth = new ApiAuth(eventBus);
         /*routerFactory.addSecurityHandler("OAuth2", new AuthHandler() {
@@ -211,12 +213,14 @@ public class ApiRestVerticle extends AbstractVerticle {
         final ApiPartner api = new ApiPartner(eventBus);
         routerFactory.addHandlerByOperationId("getPartners", api::getAll);
         routerFactory.addHandlerByOperationId("getPartner", api::get);
+        routerFactory.addHandlerByOperationId("deletePartner", api::delete);
     }
 
     private static void addHandleAd(@NonNull final EventBus eventBus, @NonNull final OpenAPI3RouterFactory routerFactory) {
         final ApiAd api = new ApiAd(eventBus);
         routerFactory.addHandlerByOperationId("getAds", api::getAll);
         routerFactory.addHandlerByOperationId("getAd", api::get);
+        routerFactory.addHandlerByOperationId("deleteAd", api::delete);
     }
 
     /* ************************************************************ */

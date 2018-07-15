@@ -34,6 +34,7 @@ import java.sql.Connection;
 import java.util.InvalidPropertiesFormatException;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
@@ -43,14 +44,18 @@ import static fr.pixel.dao.tables.Articles.ARTICLES;
 public class DatabaseVerticle extends AbstractVerticle {
     public static final String DB_ARTICLE_GET_ALL = "ApiDatabase_Article_GetAll";
     public static final String DB_ARTICLE_GET_BY_ID = "ApiDatabase_Article_GetById";
+    public static final String DB_ARTICLE_DELETE_BY_ID = "ApiDatabase_Article_DeleteById";
     public static final String DB_PARTNER_GET_ALL = "ApiDatabase_Partner_GetAll";
     public static final String DB_PARTNER_GET_BY_ID = "ApiDatabase_Partner_GetById";
+    public static final String DB_PARTNER_DELETE_BY_ID = "ApiDatabase_Partner_DeleteById";
     public static final String DB_USER_GET_ALL = "ApiDatabase_User_GetAll";
     public static final String DB_USER_GET_BY_ID = "ApiDatabase_User_GetById";
     public static final String DB_USER_AUTH_BY_NAME = "ApiDatabase_User_AuthByName";
     public static final String DB_USER_AUTH_USER_EXIST = "ApiDatabase_User_AuthTestUserExist";
+    public static final String DB_USER_DELETE_BY_ID = "ApiDatabase_User_DeleteById";
     public static final String DB_AD_GET_ALL = "ApiDatabase_Ads_GetAll";
     public static final String DB_AD_GET_BY_ID = "ApiDatabse_Ads_GetById";
+    public static final String DB_AD_DELETE_BY_ID = "ApiDatabse_Ads_DeleteById";
 
     static {
         System.setProperty("hsqldb.reconfig_logging", "false"); //HSQLDB have little problem with loggers when embed
@@ -108,21 +113,29 @@ public class DatabaseVerticle extends AbstractVerticle {
                                              msg -> execSql(msg, dsl -> dsl.selectFrom(ARTICLES).fetchInto(Articles.class)));
         this.vertx.eventBus().<Long>consumer(DB_ARTICLE_GET_BY_ID,
                                              msg -> execSql(msg, dsl -> dsl.selectFrom(ARTICLES).where(ARTICLES.ID.equal(msg.body())).fetchInto(Articles.class)));
+        this.vertx.eventBus().<Long>consumer(DB_ARTICLE_DELETE_BY_ID,
+                                            msg -> execSqlNoReturn(msg, dsl -> dsl.deleteFrom(ARTICLES).where(ARTICLES.ID.equal(msg.body()))));
         /* Partners */
         this.vertx.eventBus().<Void>consumer(DB_PARTNER_GET_ALL,
                                              msg -> execSql(msg, dsl -> new PartnersDao(dsl.configuration()).findAll()));
         this.vertx.eventBus().<Long>consumer(DB_PARTNER_GET_BY_ID,
                                              msg -> execSql(msg, dsl -> new PartnersDao(dsl.configuration()).findById(msg.body())));
+        this.vertx.eventBus().<Long>consumer(DB_PARTNER_DELETE_BY_ID,
+                                             msg -> execSqlNoReturn(msg, dsl -> new PartnersDao(dsl.configuration()).deleteById(msg.body())));
         /* Users */
         this.vertx.eventBus().<Void>consumer(DB_USER_GET_ALL,
                                              msg -> execSql(msg, dsl -> new UsersDao(dsl.configuration()).findAll()));
         this.vertx.eventBus().<Long>consumer(DB_USER_GET_BY_ID,
                                              msg -> execSql(msg, dsl -> new UsersDao(dsl.configuration()).fetchOneById(msg.body())));
+        this.vertx.eventBus().<Long>consumer(DB_USER_DELETE_BY_ID,
+                                             msg -> execSqlNoReturn(msg, dsl -> new UsersDao(dsl.configuration()).deleteById(msg.body())));
         /* Ads */
         this.vertx.eventBus().<Void>consumer(DB_AD_GET_ALL,
                                              msg -> execSql(msg, dsl -> new AdsDao(dsl.configuration()).findAll()));
         this.vertx.eventBus().<Long>consumer(DB_AD_GET_BY_ID,
                                              msg -> execSql(msg, dsl -> new AdsDao(dsl.configuration()).fetchOneById(msg.body())));
+        this.vertx.eventBus().<Long>consumer(DB_AD_DELETE_BY_ID,
+                                             msg -> execSqlNoReturn(msg, dsl -> new AdsDao(dsl.configuration()).deleteById(msg.body())));
         /* Authentification */
         //TODO
     }
@@ -235,6 +248,17 @@ public class DatabaseVerticle extends AbstractVerticle {
                 final Object tmp = getter.apply(this.mapDslContext(result.result().unwrap()));
                 result.result().close();
                 msg.reply(Json.encode(tmp));
+            } else
+                msg.fail(-1, result.cause().getMessage());
+        });
+    }
+
+    private <M> void execSqlNoReturn(@NonNull final Message<M> msg, @NonNull final Consumer<DSLContext> getter) {
+        this.client.getConnection(result -> {
+            if (result.succeeded()) {
+                getter.accept(this.mapDslContext(result.result().unwrap()));
+                result.result().close();
+                msg.reply(null);
             } else
                 msg.fail(-1, result.cause().getMessage());
         });
