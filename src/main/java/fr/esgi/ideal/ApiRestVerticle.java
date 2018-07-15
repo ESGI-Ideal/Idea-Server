@@ -22,6 +22,7 @@ import io.vertx.ext.web.api.contract.openapi3.OpenAPI3RouterFactory;
 import io.vertx.ext.web.handler.CorsHandler;
 import io.vertx.ext.web.handler.FaviconHandler;
 import io.vertx.ext.web.handler.LoggerHandler;
+import io.vertx.ext.web.handler.ResponseContentTypeHandler;
 import io.vertx.ext.web.handler.ResponseTimeHandler;
 import io.vertx.ext.web.handler.TimeoutHandler;
 import lombok.NonNull;
@@ -59,7 +60,7 @@ public class ApiRestVerticle extends AbstractVerticle {
         this.httpServer.close(stopFuture.completer());
     }
 
-    private Future<HttpServer> start_server(@NonNull final Router OPAI3Router) {
+    private Future<HttpServer> start_server(@NonNull final Router OAPI3Router) {
         // Spec loaded with success
         final Future<HttpServer> future = Future.future();
         /*router.get("/sql").handler(req -> {
@@ -73,6 +74,8 @@ public class ApiRestVerticle extends AbstractVerticle {
         final Router router = Router.router(this.vertx);
         addFaviconHandler(router.route()
                 .handler(LoggerHandler.create(/*TODO*/)))
+                .handler(ResponseTimeHandler.create())
+                .handler(TimeoutHandler.create(/*TODO*/))
                 .handler(CorsHandler.create("*")
                         //.allowedHeaders(new HashSet<>(Arrays.asList("x-requested-with", "Access-Control-Allow-Origin", "origin", "Content-Type", "accept", "X-PINGARUNER")))
                         .allowedMethods(new HashSet<>(Arrays.asList(HttpMethod.values()))))
@@ -82,10 +85,9 @@ public class ApiRestVerticle extends AbstractVerticle {
                             .putHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
                     context.next();
                 })*/
-                .handler(ResponseTimeHandler.create())
-                .handler(TimeoutHandler.create(/*TODO*/));
+                .handler(ResponseContentTypeHandler.create());
         //.handler(BodyHandler.create(/*TODO*/));
-        router.mountSubRouter("/", OPAI3Router);
+        router.mountSubRouter("/", OAPI3Router);
         //router.route("/*").handler(routCtx -> routCtx.fail(400)); //others paths
         this.vertx.createHttpServer()
                 .requestHandler(router::accept)

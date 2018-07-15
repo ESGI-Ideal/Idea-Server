@@ -1,13 +1,12 @@
 package fr.esgi.ideal.api;
 
 import io.vertx.core.Future;
-import io.vertx.core.json.Json;
-import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.api.RequestParameters;
 import lombok.NonNull;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -19,9 +18,9 @@ public interface SubApi<POJO, DTO> {
     default void getAll(@NonNull final RoutingContext routingContext) {
         this.getAll().setHandler(res -> {
             if(res.succeeded())
-                routingContext.response().setStatusCode(200).end(Json.encode(res.result().stream().map(this::map).collect(Collectors.toList())));
+                RouteUtils.send(routingContext, res.result().stream().map(this::map).collect(Collectors.toList()));
             else
-                routingContext.response().setStatusCode(500).end(new JsonObject().put("error", new JsonObject().put("reason", "An error occur on the server")).toString());
+                RouteUtils.error(routingContext, "An error occur on the server");
         });
     }
 
@@ -33,14 +32,14 @@ public interface SubApi<POJO, DTO> {
             this.get(id.get()).setHandler(res -> {
                 if(res.succeeded()) {
                     if(res.result().isPresent())
-                        routingContext.response().setStatusCode(200).end(Json.encode(this.map(res.result().get())));
+                        RouteUtils.send(routingContext, this.map(res.result().get()));
                     else
-                        routingContext.response().setStatusCode(404).end(new JsonObject().put("error", new JsonObject().put("reason", "This ID not exist")).toString());
+                        RouteUtils.error(routingContext, new NoSuchElementException("This ID not exist"));
                 } else
-                    routingContext.response().setStatusCode(500).end(new JsonObject().put("error", new JsonObject().put("reason", "An error occur on the server")).toString());
+                    RouteUtils.error(routingContext, "An error occur on the server");
             });
         else
-            routingContext.response().setStatusCode(500).end(new JsonObject().put("error", new JsonObject().put("reason", "The Id passed is null")).toString());
+            RouteUtils.error(routingContext, "The Id passed is null");
     }
 
     /*void create();
