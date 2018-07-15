@@ -27,6 +27,7 @@
     "fr.esgi.ideal.ApiRestVerticle": {
       "deploymentOptions": {
         "config": {
+          "assets_dir": "./ideal_assets/",
           "http.port": 18080,
           "https.port": 14443,
           "http2.port": 18443

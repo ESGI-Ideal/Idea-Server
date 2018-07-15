@@ -3,11 +3,13 @@ package fr.esgi.ideal;
 import fr.esgi.ideal.api.ApiAd;
 import fr.esgi.ideal.api.ApiArticle;
 import fr.esgi.ideal.api.ApiAuth;
+import fr.esgi.ideal.api.ApiImage;
 import fr.esgi.ideal.api.ApiPartner;
 import fr.esgi.ideal.api.ApiUser;
 import fr.esgi.ideal.internal.FSIO;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
+import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServer;
@@ -27,8 +29,13 @@ import io.vertx.ext.web.handler.ResponseTimeHandler;
 import io.vertx.ext.web.handler.TimeoutHandler;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import net.coobird.thumbnailator.util.ThumbnailatorUtils;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.function.BiConsumer;
@@ -38,12 +45,20 @@ import java.util.stream.Stream;
 @Slf4j
 public class ApiRestVerticle extends AbstractVerticle {
     private HttpServer httpServer;
+    private Path assets;
 
     @Override
     public void start(@NonNull final Future<Void> startFuture) throws Exception {
         log.debug("Starting verticle ...");
         log.debug("config() = {}", this.config().encodePrettily());
         this.start();
+        this.assets = Paths.get(this.config().getString("assets_dir", "./ideal-assets"));
+        if(Files.notExists(this.assets))
+            Files.createDirectory(this.assets.toAbsolutePath());
+        else
+            if(!Files.isDirectory(this.assets)) throw new InvalidPathException(this.assets.toString(), "The assets path is not an directory");
+        if(!Files.isReadable(this.assets) || !Files.isWritable(this.assets)) throw new InvalidPathException(this.assets.toString(), "Haven't right acces to assets directory");
+        log.debug("Thumbnailator supported output formats : {}", String.join(", ", ThumbnailatorUtils.getSupportedOutputFormats()));
         this.start_getOpenApiCotroller()
             .compose(this::start_server)
             .compose(x -> {
@@ -99,7 +114,7 @@ public class ApiRestVerticle extends AbstractVerticle {
         final Future<Router> future = Future.future();
         try {
             OpenAPI3RouterFactory.create(vertx, FSIO.getResourcesYamlsMergedAsExternal(
-                    "openapi.yaml", "openapi-ads.yml", "openapi-article.yml", "openapi-partner.yml", "openapi-user.yml"
+                    "openapi.yaml", "openapi-ads.yml", "openapi-article.yml", "openapi-partner.yml", "openapi-user.yml", "openapi-img.yml"
             ).toString(), ar -> future.handle(ar.map(routerFactory -> {
                 {
                     // Create and mount options to router factory
@@ -221,6 +236,16 @@ public class ApiRestVerticle extends AbstractVerticle {
         routerFactory.addHandlerByOperationId("getAds", api::getAll);
         routerFactory.addHandlerByOperationId("getAd", api::get);
         routerFactory.addHandlerByOperationId("deleteAd", api::delete);
+    }
+
+    private static void addHandleImage(@NonNull final Vertx vertx, @NonNull final EventBus eventBus, @NonNull final OpenAPI3RouterFactory routerFactory) {
+        final ApiImage api = new ApiImage(vertx, eventBus);
+        routerFactory.addHandlerByOperationId("getImages", api::getAll);
+        routerFactory.addHandlerByOperationId("newImage", api::upload);
+        routerFactory.addHandlerByOperationId("getImageMetadata", api::get);
+        routerFactory.addHandlerByOperationId("deleteImage", api::delete);
+        routerFactory.addHandlerByOperationId("getImageFile", api::getFile);
+        routerFactory.addHandlerByOperationId("getImageThumb", api::getThumb);
     }
 
     /* ************************************************************ */

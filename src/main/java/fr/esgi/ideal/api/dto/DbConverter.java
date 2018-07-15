@@ -2,10 +2,12 @@ package fr.esgi.ideal.api.dto;
 
 import fr.pixel.dao.tables.interfaces.IAds;
 import fr.pixel.dao.tables.interfaces.IArticles;
+import fr.pixel.dao.tables.interfaces.IImages;
 import fr.pixel.dao.tables.interfaces.IPartners;
 import fr.pixel.dao.tables.interfaces.IUsers;
 import fr.pixel.dao.tables.pojos.Ads;
 import fr.pixel.dao.tables.pojos.Articles;
+import fr.pixel.dao.tables.pojos.Images;
 import fr.pixel.dao.tables.pojos.Partners;
 import fr.pixel.dao.tables.pojos.Users;
 import lombok.experimental.UtilityClass;
@@ -107,6 +109,28 @@ public class DbConverter {
     public static Ads toDB(final Ad api) {
         if(api != null) {
             final Ads ad = new Ads(api.getId(), api.getDescription(), /*api.getImg()*/null);
+            return ad;
+        } else
+            return null;
+    }
+
+    public static Image toAPI(final IImages db) {
+        if(db != null) {
+            return Image.builder()
+                    .id(db.getId())
+                    .height(db.getHeight())
+                    .width(db.getWidth())
+                    .filename(db.getFilename())
+                    .hash(db.getHash())
+                    .hashfile(db.getHashfile())
+                    .build();
+        } else
+            return null;
+    }
+
+    public static Images toDB(final Image api) {
+        if(api != null) {
+            final Images ad = new Images(api.getId(), api.getHash(), api.getFilename(), api.getHashfile(), api.getWidth(), api.getHeight());
             return ad;
         } else
             return null;

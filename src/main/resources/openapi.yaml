@@ -127,18 +127,6 @@ components:
           type: string
         message:
           type: string
-    Image:
-      type: object
-      description: Information about an image
-      properties:
-        height:
-          type: integer
-          format: int32
-          minimum: 0
-        width:
-          type: integer
-          format: int32
-          minimum: 0
   responses:
     #'202':
     #    description: 'OK'
@@ -168,6 +156,8 @@ components:
         schema:
             type: integer
             format: int64
+            #minimum: 0
+        description: The object ID
   examples: {}
   requestBodies: {}
   headers: {}

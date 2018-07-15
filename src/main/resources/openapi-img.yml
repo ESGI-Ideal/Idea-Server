@@ -1,0 +1,129 @@
+paths:
+  /image:
+    get:
+      summary: 'Liste les images disponibles'
+      description: ''
+      operationId: getImages
+      responses:
+        200:
+          description: 'OK'
+          content:
+            application/json:
+                schema:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Image'
+    post:
+      summary: 'Upload une nouvelle image'
+      description: ''
+      operationId: newImage
+      requestBody:
+        description: Image's data
+        required: true
+        content:
+          image/*:
+            schema:
+              type: string
+              format: binary
+          #multipart/form-data:
+          #  schema:
+          #    properties:
+          #      #convertFormat:
+          #      filename:
+          #        type: string
+          #        format: binary
+          #multipart/form-data:
+          #  schema:
+          #    #convertFormat:
+          #    filename:
+          #      type: array
+          #      items:
+          #        type: string
+          #        format: binary
+      responses:
+        201:
+          description: 'Create'
+          content:
+            application/json:
+                schema:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Image'
+  /image/{id}:
+    parameters:
+      - $ref: '#/components/parameters/id'
+    get:
+      summary: 'Metadata d.une image'
+      description: ''
+      operationId: getImageMetadata
+      responses:
+        200:
+          description: 'OK'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Image'
+    delete:
+      summary: 'Supprime une image'
+      description: ''
+      operationId: deleteImage
+      responses:
+        200:
+          description: 'OK'
+  /image/{id}/file:
+    get:
+      summary: 'Récupère l.image (données binaires)'
+      description: ''
+      operationId: getImageFile
+      parameters:
+        - $ref: '#/components/parameters/id'
+      responses:
+        200:
+          description: 'OK'
+          content:
+            image/jpg:
+              schema:
+                type: string
+                format: binary
+        404:
+          description: 'Not found'
+  /image/{id}/thumb:
+    get:
+      summary: 'Génère une miniature de l.image (données binaires)'
+      description: ''
+      operationId: getImageThumb
+      parameters:
+        - $ref: '#/components/parameters/id'
+        - in: query
+          name: size
+          schema:
+            type: integer
+            minimum: 1
+            default: 150
+          required: false
+          description: The numbers of items to return
+      responses:
+        200:
+          description: 'OK'
+          content:
+            image/jpg:
+              schema:
+                type: string
+                format: binary
+        404:
+          description: 'Not found'
+
+components:
+  schemas:
+    Image:
+      type: object
+      description: Information about an image
+      properties:
+        height:
+          type: integer
+          format: int32
+          minimum: 0
+        width:
+          type: integer
+          format: int32
+          minimum: 0

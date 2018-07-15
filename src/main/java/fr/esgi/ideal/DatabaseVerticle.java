@@ -7,6 +7,7 @@ import fr.esgi.ideal.internal.FSIO;
 import fr.esgi.ideal.internal.P6Param;
 import fr.esgi.ideal.internal.SqlParam;
 import fr.pixel.dao.tables.daos.AdsDao;
+import fr.pixel.dao.tables.daos.ImagesDao;
 import fr.pixel.dao.tables.daos.PartnersDao;
 import fr.pixel.dao.tables.daos.UsersDao;
 import fr.pixel.dao.tables.pojos.Articles;
@@ -56,6 +57,9 @@ public class DatabaseVerticle extends AbstractVerticle {
     public static final String DB_AD_GET_ALL = "ApiDatabase_Ads_GetAll";
     public static final String DB_AD_GET_BY_ID = "ApiDatabse_Ads_GetById";
     public static final String DB_AD_DELETE_BY_ID = "ApiDatabse_Ads_DeleteById";
+    public static final String DB_IMAGE_GET_ALL = "ApiDatabse_Image_GetAll";
+    public static final String DB_IMAGE_GET_BY_ID = "ApiDatabse_Image_GetById";
+    public static final String DB_IMAGE_DELETE_BY_ID = "ApiDatabse_Image_DeleteById";
 
     static {
         System.setProperty("hsqldb.reconfig_logging", "false"); //HSQLDB have little problem with loggers when embed
@@ -136,6 +140,13 @@ public class DatabaseVerticle extends AbstractVerticle {
                                              msg -> execSql(msg, dsl -> new AdsDao(dsl.configuration()).fetchOneById(msg.body())));
         this.vertx.eventBus().<Long>consumer(DB_AD_DELETE_BY_ID,
                                              msg -> execSqlNoReturn(msg, dsl -> new AdsDao(dsl.configuration()).deleteById(msg.body())));
+        /* Images */
+        this.vertx.eventBus().<Void>consumer(DB_IMAGE_GET_ALL,
+                                             msg -> execSql(msg, dsl -> new ImagesDao(dsl.configuration()).findAll()));
+        this.vertx.eventBus().<Long>consumer(DB_IMAGE_GET_BY_ID,
+                                             msg -> execSql(msg, dsl -> new ImagesDao(dsl.configuration()).fetchOneById(msg.body())));
+        this.vertx.eventBus().<Long>consumer(DB_IMAGE_DELETE_BY_ID,
+                                             msg -> execSqlNoReturn(msg, dsl -> new ImagesDao(dsl.configuration()).deleteById(msg.body())));
         /* Authentification */
         //TODO
     }

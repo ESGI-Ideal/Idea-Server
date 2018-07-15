@@ -37,7 +37,7 @@
         <!--<tagDatabase tag="0.1" />-->
     </changeSet>
 
-    <changeSet id="01-add-article-rate" author="Tristan">
+    <changeSet id="02-add-article-rate" author="Tristan">
         <comment>Add Like/Dislike of articles by users</comment>
         <renameTable oldTableName="articles" newTableName="articles_data" />
         <createTable tableName="articles_rates" remarks="Likes and dislikes of user about articles">
@@ -45,6 +45,27 @@
             <column name="user" type="bigint"><constraints nullable="false" primaryKey="true" referencedTableName="articles_data" referencedColumnNames="id" foreignKeyName="articles_rates_users_id"/></column>
             <column name="adore" type="boolean"><constraints nullable="false"/></column>
         </createTable>
+        <createView viewName="articles">select articles_data.*, sum(case when adore then 1 else 0 end) as rate from articles_data left join articles_rates on id=article group by id</createView>
+    </changeSet>
+
+    <changeSet id="03-add-images" author="Tristan">
+        <comment>Add Images table and link to others</comment>
+        <createTable tableName="images" remarks="Images of others elements">
+            <column name="id" type="bigint" autoIncrement="true"><constraints nullable="false" primaryKey="true"/></column>
+            <column name="hash" type="binary(32)" remarks="SHA-256 of file"><constraints nullable="false" unique="true"/></column>
+            <column name="filename" type="varchar(100)" encoding="utf-8" remarks="Original filename of file"><constraints nullable="true"/></column>
+            <column name="hashfile" type="binary(32)" remarks="SHA-256 of original file"><constraints nullable="false" unique="true"/></column>
+            <column name="width" type="integer" remarks="width in pixels"><constraints nullable="false"/></column>
+            <column name="height" type="integer" remarks="height in pixels"><constraints nullable="false"/></column>
+            <!--<column name="size" type="bigint" remarks="Size of file for avoid fs access"><constraints nullable="true"/></column>-->
+        </createTable>
+        <modifyDataType tableName="ads" columnName="image" newDataType="bigint" />
+        <addForeignKeyConstraint baseTableName="ads" baseColumnNames="image" constraintName="fk_ads_img" referencedTableName="images" referencedColumnNames="id" />
+        <modifyDataType tableName="users" columnName="image" newDataType="bigint" />
+        <addForeignKeyConstraint baseTableName="users" baseColumnNames="image" constraintName="fk_user_img" referencedTableName="images" referencedColumnNames="id" />
+        <dropView viewName="articles" /><!--DatabaseException: dependent objects exist: PUBLIC.ARTICLES in statement [ALTER TABLE articles_data ALTER COLUMN image BIGINT]-->
+        <modifyDataType tableName="articles_data" columnName="image" newDataType="bigint" />
+        <addForeignKeyConstraint baseTableName="articles_data" baseColumnNames="image" constraintName="fk_article_img" referencedTableName="images" referencedColumnNames="id" />
         <createView viewName="articles">select articles_data.*, sum(case when adore then 1 else 0 end) as rate from articles_data left join articles_rates on id=article group by id</createView>
     </changeSet>
 </databaseChangeLog>

@@ -13,6 +13,14 @@ import javax.validation.constraints.Min;
 @Builder
 @AllArgsConstructor
 public class Image {
+    private Long id;
+
+    private byte[] hash;
+
+    private String filename;
+
+    private byte[] hashfile;
+
     /**
      * Size of the image
      */
