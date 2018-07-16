@@ -117,8 +117,10 @@ components:
           nullable: true
         email:
           type: string
-        inscription:
-          type: string
-          format: date
+        #inscription:
+        #  type: string
+        #  format: date
+        isAdmin:
+          type: boolean
       xml:
         name: UserData

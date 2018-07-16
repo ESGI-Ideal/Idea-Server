@@ -35,6 +35,8 @@ paths:
       responses:
         '201':
           description: 'Create'
+        '200':
+          description: 'Created'
   /ad/{id}:
     get:
       summary: informations on an ad

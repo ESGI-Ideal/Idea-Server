@@ -10,9 +10,7 @@ import fr.pixel.dao.tables.pojos.Articles;
 import fr.pixel.dao.tables.pojos.Images;
 import fr.pixel.dao.tables.pojos.Partners;
 import fr.pixel.dao.tables.pojos.Users;
-import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
-import jdk.nashorn.internal.runtime.JSONFunctions;
 import lombok.experimental.UtilityClass;
 
 import java.time.LocalDateTime;
@@ -46,7 +44,7 @@ public class DbConverter {
             final User user = User.builder()
                     .id(db.getLong("id"))
                     .inscription(null)
-                    //.isAdmin(db.getBoolean())
+                    .isAdmin(db.getBoolean("isAdmin", false))
                     .mail(db.getString("email"))
                     .img(db.getLong("img")) //TODO
                     .build();
@@ -59,7 +57,7 @@ public class DbConverter {
 
     public static Users toDB(final User api) {
         if(api != null) {
-            final Users user = new Users(api.getId(), null, api.getImg(), api.getMail(), convert(api.getInscription()), api.isAdmin());
+            final Users user = new Users(api.getId(), api.getImg(), api.getMail(), convert(api.getInscription()), api.isAdmin());
             return user;
         } else
             return null;
