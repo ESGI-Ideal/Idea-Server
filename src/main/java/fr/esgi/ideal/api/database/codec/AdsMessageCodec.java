@@ -1,8 +1,6 @@
 package fr.esgi.ideal.api.database.codec;
 
-import fr.pixel.dao.tables.interfaces.IAds;
 import fr.pixel.dao.tables.pojos.Ads;
-import io.vertx.core.buffer.Buffer;
 import io.vertx.core.json.JsonObject;
 
 public class AdsMessageCodec extends AbstractMessageCodec<Ads> {

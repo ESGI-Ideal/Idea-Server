@@ -1,20 +1,16 @@
 package fr.esgi.ideal.api;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import fr.esgi.ideal.DatabaseVerticle;
-import fr.esgi.ideal.api.dto.Ad;
 import fr.esgi.ideal.api.dto.DbConverter;
 import fr.esgi.ideal.api.dto.Partner;
 import fr.pixel.dao.tables.pojos.Partners;
 import io.vertx.core.Future;
 import io.vertx.core.eventbus.EventBus;
-import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.mail.Part;
 import java.util.List;
 import java.util.Optional;
 
