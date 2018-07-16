@@ -1,0 +1,177 @@
+openapi: 3.0.0
+servers: []
+  #- url: 'http://api.ideal.com/'
+  #  description: Ideal data API
+  #  variables: {}
+info:
+  description: >-
+    For this sample, you can use the api key `special-key` to test the
+    authorization filters.
+  version: 1.0.0
+  title: Swagger Petstore
+  termsOfService: 'https://esgi-ideal.github.io/terms/'
+  contact:
+    email: todo@reseau-ges.fr
+    name: IDeal Shop Support
+    url: 'https://esgi-ideal.github.io/support/'
+  license:
+    name: CC BY-SA 4.0
+    url: 'https://creativecommons.org/licenses/by/4.0/'
+tags:
+  - name: article
+    description: Everything about your articles
+    externalDocs:
+      description: Find out more
+      url: 'http://todo/doc'
+  - name: user
+    description: Operations about user
+  - name: partner
+    description: Access to Petstore orders
+    externalDocs:
+      description: Find out more about our partners
+      url: 'http://doc/todo'
+  - name: ads
+paths:
+  /:
+    get:
+      summary: 'informations de base (statut, version ...)'
+      description: ''
+      operationId: apiInfos
+      responses:
+        200:
+          description: 'OK'
+          content:
+            application/json:
+                schema:
+                  type: object
+  /search:
+    get:
+      summary: search in articles
+      description: ''
+      parameters: []
+      operationId: doSearch
+      responses:
+        default:
+          description: Default response
+      tags:
+        - article
+  /oauth2/token:
+    post:
+      summary: OAuth2 authnetication end-point
+      operationId: oauth2Token
+      #parameters: !!!
+      requestBody:
+        description: 'OAuth information for request'
+        required: true
+        content:
+          #application/x-www-form-urlencoded
+          '*/*':
+            schema:
+              type: object
+              required:
+                - grant_type
+                - username
+                - password
+                - client_id
+                - client_secret
+                - scope
+              properties:
+                grant_type:
+                    type: string
+                    enum: [password]
+                username:
+                    type: string
+                password:
+                    type: string
+                    format: password
+                client_id:
+                    type: string
+                client_secret:
+                    type: string
+                    format: password
+                scope:
+                    type: array
+                    #items:
+                    #    type: string
+      responses:
+        '400':
+            description: 'Access token error'
+            content:
+                application/json: {}
+        default:
+          description: ''
+          content:
+            application/json: {}
+externalDocs:
+  description: See API example
+  url: 'https://esgi-ideal.github.io/'
+components:
+  schemas:
+    Tag:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+      xml:
+        name: Tag
+    ApiResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          format: int32
+        type:
+          type: string
+        message:
+          type: string
+  responses:
+    #'202':
+    #    description: 'OK'
+    #'201':
+    #    description: 'Entity created'
+    '204':
+        description: 'Entity deleted'
+    '304':
+        description: 'Entity not modified'
+    '400':
+        description: 'Illegal input for operation'
+    '406':
+        description: 'Illegal input for operation'
+    '404':
+        description: 'Entity not found'
+    '401':
+        description: 'Authentication required for access this resource'
+    '403':
+        description: 'Privileges access refused'
+    '409':
+        description: 'Entity conflicts with operation'
+  parameters:
+    id:
+        name: id
+        in: path
+        required: true
+        schema:
+            type: integer
+            format: int64
+            #minimum: 0
+        description: The object ID
+  examples: {}
+  requestBodies: {}
+  headers: {}
+  securitySchemes:
+    OAuth2:
+        type: oauth2
+        flows:
+            password:
+                tokenUrl: "/oauth2/token"
+                refreshUrl: "/oauth2/refresh"
+                scopes:
+                    user: Access to connected user
+                    admin: Access to administrators
+  links: {}
+  callbacks: {}
+security:
+    - OAuth2: []

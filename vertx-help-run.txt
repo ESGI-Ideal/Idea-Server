@@ -1,0 +1,85 @@
+Usage: java -jar
+       api-server-0.2-SNAPSHOT-fat.jar
+       run [-cp <classpath>] [--cluster] [--cluster-host <host>] [--cluster-port
+       <port>] [--conf <config>]  [--ha] [--hagroup <group>] [--instances
+       <instances>] [--on-redeploy <cmd>]  [--quorum <q>] [--redeploy
+       <includes>] [--redeploy-grace-period <period>] [--redeploy-scan-period
+       <period>] [--redeploy-termination-period <period>]  [--worker]
+       main-verticle
+
+Runs a verticle called <main-verticle> in its own instance of vert.x.
+
+Options and Arguments:
+ -cp,--classpath <classpath>                 Provides an extra classpath to be
+                                             used for the verticle deployment.
+    --cluster                                If specified then the vert.x
+                                             instance will form a cluster with
+                                             any other vert.x instances on the
+                                             network.
+    --cluster-host <host>                    host to bind to for cluster
+                                             communication. If this is not
+                                             specified vert.x will attempt to
+                                             choose one from the available
+                                             interfaces.
+    --cluster-port <port>                    Port to use for cluster
+                                             communication. Default is 0 which
+                                             means choose a spare random port.
+    --conf <config>                          Specifies configuration that should
+                                             be provided to the verticle.
+                                             <config> should reference either a
+                                             text file containing a valid JSON
+                                             object which represents the
+                                             configuration OR be a JSON string.
+    --ha                                     If specified the verticle will be
+                                             deployed as a high availability
+                                             (HA) deployment. This means it can
+                                             fail over to any other nodes in the
+                                             cluster started with the same HA
+                                             group.
+    --hagroup <group>                        used in conjunction with -ha this
+                                             specifies the HA group this node
+                                             will join. There can be multiple HA
+                                             groups in a cluster. Nodes will
+                                             only failover to other nodes in the
+                                             same group. Defaults to
+                                             '__DEFAULT__'.
+    --instances <instances>                  Specifies how many instances of the
+                                             verticle will be deployed. Defaults
+                                             to 1.
+    --on-redeploy <cmd>                      Optional shell command executed
+                                             when a redeployment is triggered
+    --quorum <q>                             Used in conjunction with -ha this
+                                             specifies the minimum number of
+                                             nodes in the cluster for any HA
+                                             deploymentIDs to be active.
+                                             Defaults to 1.
+    --redeploy <includes>                    Enable automatic redeployment of
+                                             the application. This option takes
+                                             a set on includes as parameter
+                                             indicating which files need to be
+                                             watched. Patterns are separated by
+                                             a comma.
+    --redeploy-grace-period <period>         When redeploy is enabled, this
+                                             option configures the grace period
+                                             between 2 redeployments. The time
+                                             is given in milliseconds. 1000 ms
+                                             by default.
+    --redeploy-scan-period <period>          When redeploy is enabled, this
+                                             option configures the file system
+                                             scanning period to detect file
+                                             changes. The time is given in
+                                             milliseconds. 250 ms by default.
+    --redeploy-termination-period <period>   When redeploy is enabled, this
+                                             option configures the time waited
+                                             to be sure that the previous
+                                             version of the application has been
+                                             stopped. It is useful on Windows,
+                                             where the 'terminate' command may
+                                             take time to be executed.The time
+                                             is given in milliseconds. 0 ms by
+                                             default.
+    --worker                                 If specified then the verticle is a
+                                             worker verticle.
+ <main-verticle>                             The main verticle to deploy, it can
+                                             be a fully qualified class name or
+                                             a file.

@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
+
+    <changeSet id="01-init-db" author="Tristan">
+        <comment>Initial tables for mapping API's endpoint</comment>
+        <createTable tableName="articles">
+            <column name="id" type="bigint" autoIncrement="true"><constraints nullable="false" primaryKey="true"/></column>
+            <column name="name" type="varchar(100)" encoding="utf-8"><constraints nullable="false"/></column>
+            <column name="image" type="integer"/>
+            <column name="description" type="varchar(250)" encoding="utf-8"/>
+            <column name="price" type="decimal" defaultValueNumeric="0.0"/>
+            <column name="created" type="timestamp"/>
+            <column name="updated" type="timestamp"/>
+        </createTable>
+        <createTable tableName="users">
+            <column name="id" type="bigint" autoIncrement="true"><constraints nullable="false" primaryKey="true"/></column>
+            <column name="pseudo" type="varchar(50)" encoding="utf-8"><constraints nullable="false" unique="true"/></column>
+            <column name="image" type="integer"/>
+            <column name="mail" type="varchar(100)" encoding="utf-8"><constraints nullable="false" unique="true"/></column>
+            <column name="created" type="timestamp"/>
+            <column name="admin" type="boolean" defaultValueBoolean="false"><constraints nullable="false"/></column>
+            <!--<column name="bio" type="varchar(500)" encoding="utf-8"/>-->
+        </createTable>
+        <createTable tableName="partners" remarks="Commercial partners">
+            <column name="id" type="bigint" autoIncrement="true"><constraints nullable="false" primaryKey="true"/></column>
+            <column name="name" type="varchar(100)" encoding="utf-8"><constraints nullable="false"/></column>
+            <column name="description" type="varchar(500)" encoding="utf-8"><constraints nullable="false"/></column>
+            <column name="image" type="integer"/>
+        </createTable>
+        <createTable tableName="ads" remarks="Ads shown on website">
+            <column name="id" type="bigint" autoIncrement="true"><constraints nullable="false" primaryKey="true"/></column>
+            <column name="title" type="varchar(100)" encoding="utf-8"/>
+            <column name="image" type="integer"/>
+        </createTable>
+        <!--<tagDatabase tag="0.1" />-->
+    </changeSet>
+
+    <changeSet id="02-add-article-rate" author="Tristan">
+        <comment>Add Like/Dislike of articles by users</comment>
+        <renameTable oldTableName="articles" newTableName="articles_data" />
+        <createTable tableName="articles_rates" remarks="Likes and dislikes of user about articles">
+            <column name="article" type="bigint"><constraints nullable="false" primaryKey="true" referencedTableName="articles_data" referencedColumnNames="id" foreignKeyName="articles_rates_articles_data_id"/></column>
+            <column name="user" type="bigint"><constraints nullable="false" primaryKey="true" referencedTableName="articles_data" referencedColumnNames="id" foreignKeyName="articles_rates_users_id"/></column>
+            <column name="adore" type="boolean"><constraints nullable="false"/></column>
+        </createTable>
+        <createView viewName="articles">select articles_data.*, sum(case when adore then 1 else 0 end) as rate from articles_data left join articles_rates on id=article group by id</createView>
+    </changeSet>
+
+    <changeSet id="03-add-images" author="Tristan">
+        <comment>Add Images table and link to others</comment>
+        <createTable tableName="images" remarks="Images of others elements">
+            <column name="id" type="bigint" autoIncrement="true"><constraints nullable="false" primaryKey="true"/></column>
+            <column name="hash" type="binary(32)" remarks="SHA-256 of file"><constraints nullable="false" unique="true"/></column>
+            <column name="filename" type="varchar(100)" encoding="utf-8" remarks="Original filename of file"><constraints nullable="true"/></column>
+            <column name="hashfile" type="binary(32)" remarks="SHA-256 of original file"><constraints nullable="false" unique="true"/></column>
+            <column name="width" type="integer" remarks="width in pixels"><constraints nullable="false"/></column>
+            <column name="height" type="integer" remarks="height in pixels"><constraints nullable="false"/></column>
+            <!--<column name="size" type="bigint" remarks="Size of file for avoid fs access"><constraints nullable="true"/></column>-->
+        </createTable>
+        <modifyDataType tableName="ads" columnName="image" newDataType="bigint" />
+        <addForeignKeyConstraint baseTableName="ads" baseColumnNames="image" constraintName="fk_ads_img" referencedTableName="images" referencedColumnNames="id" />
+        <modifyDataType tableName="users" columnName="image" newDataType="bigint" />
+        <addForeignKeyConstraint baseTableName="users" baseColumnNames="image" constraintName="fk_user_img" referencedTableName="images" referencedColumnNames="id" />
+        <dropView viewName="articles" /><!--DatabaseException: dependent objects exist: PUBLIC.ARTICLES in statement [ALTER TABLE articles_data ALTER COLUMN image BIGINT]-->
+        <modifyDataType tableName="articles_data" columnName="image" newDataType="bigint" />
+        <addForeignKeyConstraint baseTableName="articles_data" baseColumnNames="image" constraintName="fk_article_img" referencedTableName="images" referencedColumnNames="id" />
+        <createView viewName="articles">select articles_data.*, sum(case when adore then 1 else 0 end) as rate from articles_data left join articles_rates on id=article group by id</createView>
+        <modifyDataType tableName="partners" columnName="image" newDataType="bigint" />
+        <addForeignKeyConstraint baseTableName="partners" baseColumnNames="image" constraintName="fk_partner_img" referencedTableName="images" referencedColumnNames="id" />
+    </changeSet>
+
+    <changeSet id="04-add-image-null" author="Tristan">
+        <insert tableName="images">
+            <column name="id" value="0"/>
+            <column name="hash" value="45a46238e0c0821fc1b96e03ee09af7b55ab3565d02417a6ddea51daf861ce8d"/>
+            <column name="filename" value="240px-No_image_available.png"/>
+            <column name="hashfile" value="45a46238e0c0821fc1b96e03ee09af7b55ab3565d02417a6ddea51daf861ce8d"/>
+            <column name="width" value="240"/>
+            <column name="height" value="240"/>
+        </insert>
+    </changeSet>
+
+    <changeSet id="05-temp-change" author="Tristan">
+        <dropColumn tableName="users" columnName="pseudo" />
+    </changeSet>
+</databaseChangeLog>

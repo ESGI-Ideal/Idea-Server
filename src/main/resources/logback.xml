@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration xmlns="http://ch.qos.logback/xml/ns/logback"
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xsi:schemaLocation="http://ch.qos.logback/xml/ns/logback https://raw.githubusercontent.com/enricopulatzo/logback-XSD/master/src/main/xsd/logback.xsd"
+               scan="false" scanPeriod="60 seconds"
+               debug="true" packagingData="true">
+<!--packaging data is expensive to compute, especially in applications with frequent exceptions-->
+
+    <contextName>Ideal-Srv</contextName>
+    <statusListener class="ch.qos.logback.core.status.OnConsoleStatusListener" /><!--strictly equivalent to debug=true-->
+    <contextListener class="ch.qos.logback.classic.jul.LevelChangePropagator">
+        <resetJUL>true</resetJUL>
+    </contextListener>
+    <jmxConfigurator/>
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+    <!--<appender name="STDOUT" class="fr.esgi.ideal.internal.AnsiConsoleAppender">-->
+        <!-- "%black", "%red", "%green","%yellow","%blue", "%magenta","%cyan", "%white", "%gray",
+             "%boldRed","%boldGreen", "%boldYellow", "%boldBlue", "%boldMagenta""%boldCyan", "%boldWhite"
+              and "%highlight" -->
+        <withJansi>true</withJansi>
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %highlight(%-5level) %logger - %msg%n</pattern>
+            <!--<pattern>%cyan(%-20(%date{HH:mm:ss} %logger{10}) |) %highlight(%msg %n)</pattern>-->
+        </encoder>
+    </appender>
+
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>logs/app.log</file>
+        <append>true</append>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>logs/app.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <maxFileSize>10MB</maxFileSize>
+            <maxHistory>30</maxHistory>
+            <totalSizeCap>2GB</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+            <!--<pattern>%d{HH:mm:ss.SSS} %-4relative [%thread] %-5level %logger{35} - %msg%n</pattern>-->
+            <!--<pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %highlight(%-5level) [%-40.40logger{10}] - %msg%n</pattern>-->
+        </encoder>
+    </appender>
+    <appender name="ASYNC" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="FILE" />
+    </appender>
+
+    <logger name="liquibase.resource.ClassLoaderResourceAccessor" level="info" />
+    <logger name="liquibase.servicelocator.DefaultPackageScanClassResolver" level="info" />
+    <logger name="liquibase.servicelocator.ServiceLocator" level="info" />
+    <logger name="liquibase.util.MD5Util" level="info"/>
+    <logger name="io.netty" level="warn" />
+    <logger name="io.vertx" level="info" />
+    <logger name="io.swagger.v3.parser.util.ResolverFully" level="debug"/>
+    <logger name="com.mchange" level="warn" />
+    <logger name="org.hsqldb" level="info" />
+    <logger name="fr.esgi.ideal" level="all" />
+    <!--<logger name="com.p6spy" level="info"/>-->
+
+    <root level="debug">
+        <appender-ref ref="STDOUT" />
+        <appender-ref ref="ASYNC" />
+    </root>
+</configuration>
