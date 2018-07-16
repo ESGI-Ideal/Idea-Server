@@ -1,0 +1,113 @@
+paths:
+  /article:
+    get:
+      summary: articles list
+      description: Return all articles from the system
+      operationId: getArticles
+      responses:
+        '200':
+          description: A list of articles
+          content:
+            application/json:
+                schema:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Article'
+      tags:
+        - article
+    #put:
+    #  #TODO
+    post:
+      summary: Add new Article
+      description: ''
+      operationId: newArticle
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ArticleContent'
+          application/xml:
+            schema:
+              $ref: '#/components/schemas/ArticleContent'
+      responses:
+        '201':
+          description: 'Create'
+  /article/{id}:
+    get:
+      summary: informations on an article
+      description: ''
+      operationId: getArticle
+      parameters:
+        - $ref: '#/components/parameters/id'
+      responses:
+        '200':
+          description: Datas on the article
+          content:
+            application/json:
+                schema:
+                  $ref: '#/components/schemas/Article'
+        default:
+          description: Article's ID not exist
+      tags:
+        - article
+    #patch:
+    #  #TODO
+    delete:
+      description: ''
+      operationId: deleteArticle
+      parameters:
+        - $ref: '#/components/parameters/id'
+      responses:
+        '204':
+          description: Delete completed
+          content:
+            application/json:
+                schema:
+                  $ref: '#/components/schemas/Article'
+        default:
+          description: Article's ID not exist
+      tags:
+        - article
+
+components:
+  schemas:
+    Article:
+      allOf:
+        - type: object
+          required:
+            - id
+          properties:
+            id:
+              type: integer
+              format: int64
+              minimum: 0
+        - $ref: '#/components/schemas/ArticleContent'
+      xml:
+        name: Article
+    ArticleContent:
+      type: object
+      properties:
+        name:
+          type: string
+        img:
+          #$ref: "#/components/schemas/Image"
+          type: integer
+          format: int64
+          nullable: true
+        #created:
+        #  type: string
+        #  format: date-time
+        #updated:
+        #  type: string
+        #  format: date-time
+        description:
+          type: string
+        price:
+          type: number
+          format: float
+        #customerRating:
+        #  type: number
+        #  format: int32
+      xml:
+        name: ArticleData

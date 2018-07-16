@@ -21,5 +21,6 @@ public class Ad {
     /**
      * Information about the image
      */
-    private Image img;
+    //private Image img;
+    private Long img;
 }

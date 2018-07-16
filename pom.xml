@@ -4,7 +4,7 @@
 
     <groupId>fr.esgi.ideal</groupId>
     <artifactId>api-server</artifactId>
-    <version>0.6.5-SNAPSHOT</version>
+    <version>0.7.9-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>api-server</name>
@@ -30,15 +30,17 @@
     <properties>
         <db-path>${project.build.directory}/db-jooq</db-path>
         <db-jdbc-url>jdbc:hsqldb:file:${db-path};shutdown=true</db-jdbc-url>
+        <vertx.verticle>fr.esgi.ideal.AppStartVerticle</vertx.verticle><!--When use, `Main-Class=io.vertx.core.Launcher`-->
+        <vertx.launcher>fr.esgi.ideal.AppLauncher</vertx.launcher>
+        <!--<vertx.config>api-conf.json</vertx.config>--><!--${basedir}/src/main/${project.artifactId}.[json,yaml,yml]-->
         <!-- maven projet config -->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <!-- Librairies versions -->
-        <vertx.version>3.5.1</vertx.version>
-        <liquibase.version>3.5.5</liquibase.version>
-        <jooq.version>3.11.2</jooq.version>
+        <liquibase.version>3.6.2</liquibase.version>
+        <jooq.version>3.11.3</jooq.version>
         <hsqldb.version>2.4.1</hsqldb.version>
     </properties>
 
@@ -47,7 +49,7 @@
             <dependency>
                 <groupId>io.vertx</groupId>
                 <artifactId>vertx-dependencies</artifactId>
-                <version>${vertx.version}</version>
+                <version>3.5.3</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -55,6 +57,27 @@
                 <groupId>org.jooq</groupId>
                 <artifactId>jooq-parent</artifactId>
                 <version>${jooq.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson</groupId>
+                <artifactId>jackson-bom</artifactId>
+                <version>2.9.6</version>
+                <scope>import</scope>
+                <type>pom</type>
+            </dependency>
+            <dependency>
+                <groupId>com.eoniantech.build</groupId>
+                <artifactId>slf4j-bom</artifactId>
+                <version>1.7.25</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.eoniantech.build</groupId>
+                <artifactId>logback-bom</artifactId>
+                <version>1.2.3</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -66,34 +89,32 @@
         <dependency>
             <groupId>io.vertx</groupId>
             <artifactId>vertx-core</artifactId>
-            <version>${vertx.version}</version>
         </dependency>
         <dependency>
             <groupId>io.vertx</groupId>
             <artifactId>vertx-web</artifactId>
-            <version>${vertx.version}</version>
         </dependency>
         <dependency>
             <groupId>io.vertx</groupId>
             <artifactId>vertx-web-api-contract</artifactId>
-            <version>${vertx.version}</version>
         </dependency>
         <dependency>
             <groupId>io.vertx</groupId>
             <artifactId>vertx-auth-common</artifactId>
-            <version>${vertx.version}</version>
         </dependency>
         <dependency>
             <groupId>io.vertx</groupId>
             <artifactId>vertx-auth-oauth2</artifactId>
-            <version>${vertx.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.dataformat</groupId>
+            <artifactId>jackson-dataformat-xml</artifactId>
         </dependency>
 
         <!-- Database -->
         <dependency>
             <groupId>io.vertx</groupId>
             <artifactId>vertx-jdbc-client</artifactId>
-            <version>${vertx.version}</version>
         </dependency>
         <dependency>
             <groupId>org.liquibase</groupId>
@@ -114,7 +135,7 @@
         <dependency>
             <groupId>org.hsqldb</groupId>
             <artifactId>hsqldb</artifactId>
-            <version>2.3.6</version>
+            <version>${hsqldb.version}</version>
         </dependency>
         <dependency>
             <groupId>org.jooq</groupId>
@@ -133,23 +154,36 @@
             <artifactId>jooq-checker</artifactId>
             <version>${jooq.version}</version>
         </dependency>
+        <dependency>
+            <groupId>p6spy</groupId>
+            <artifactId>p6spy</artifactId>
+            <version>3.7.0</version>
+        </dependency>
 
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.16.20</version>
+            <version>1.18.0</version>
+        </dependency>
+        <dependency>
+            <groupId>net.coobird</groupId>
+            <artifactId>thumbnailator</artifactId>
+            <version>0.4.8</version>
+        </dependency>
+        <dependency>
+            <groupId>org.imgscalr</groupId>
+            <artifactId>imgscalr-lib</artifactId>
+            <version>4.2</version>
         </dependency>
 
         <!-- Logging -->
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-            <version>1.7.25</version>
         </dependency>
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
-            <version>1.2.3</version>
         </dependency>
         <dependency>
             <groupId>org.fusesource.jansi</groupId>
@@ -163,7 +197,6 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>jul-to-slf4j</artifactId>
-            <version>1.7.25</version>
         </dependency>
         <dependency>
             <groupId>com.mattbertolini</groupId>
@@ -175,7 +208,6 @@
         <dependency>
             <groupId>io.vertx</groupId>
             <artifactId>vertx-unit</artifactId>
-            <version>${vertx.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -249,7 +281,7 @@
             <plugin>
                 <groupId>org.jooq</groupId>
                 <artifactId>jooq-codegen-maven</artifactId>
-                <version>${jooq.version}</version>
+                <version>3.11.2</version>
                 <executions>
                     <execution>
                         <id>db_bind_build</id>
@@ -289,13 +321,28 @@
                             <logSlowQueriesAfterSeconds/>
                         </database>
                         <generate>
-                            <daos>true</daos>
+                            <javadoc>true</javadoc>
                             <comments>true</comments>
+                            <commentsOnAttributes>true</commentsOnAttributes>
+                            <commentsOnCatalogs>true</commentsOnCatalogs>
+                            <commentsOnColumns>true</commentsOnColumns>
+                            <commentsOnKeys>true</commentsOnKeys>
+                            <commentsOnLinks>true</commentsOnLinks>
+                            <commentsOnPackages>true</commentsOnPackages>
+                            <commentsOnParameters>true</commentsOnParameters>
+                            <commentsOnQueues>true</commentsOnQueues>
+                            <commentsOnRoutines>true</commentsOnRoutines>
+                            <commentsOnSchemas>true</commentsOnSchemas>
+                            <commentsOnSequences>true</commentsOnSequences>
+                            <commentsOnTables>true</commentsOnTables>
+                            <commentsOnUDTs>true</commentsOnUDTs>
+                            <daos>true</daos>
                             <deprecated>false</deprecated>
                             <deprecationOnUnknownTypes>true</deprecationOnUnknownTypes>
+                            <generatedAnnotation>true</generatedAnnotation>
                             <javaBeansGettersAndSetters>true</javaBeansGettersAndSetters>
                             <validationAnnotations>true</validationAnnotations>
-                            <javadoc>true</javadoc>
+                            <javaTimeTypes>true</javaTimeTypes>
                             <pojos>true</pojos>
                             <pojosEqualsAndHashCode>true</pojosEqualsAndHashCode>
                             <pojosToString>true</pojosToString>
@@ -303,11 +350,12 @@
                             <immutablePojos>true</immutablePojos>
                             <fluentSetters>true</fluentSetters>
                             <varargSetters>false</varargSetters>
-                            <generatedAnnotation>true</generatedAnnotation>
                             <interfaces>true</interfaces>
                             <immutableInterfaces>true</immutableInterfaces>
                             <serializableInterfaces>true</serializableInterfaces>
-                            <javaTimeTypes>true</javaTimeTypes>
+                            <emptyCatalogs>false</emptyCatalogs>
+                            <emptySchemas>false</emptySchemas>
+                            <globalSchemaReferences>false</globalSchemaReferences>
                         </generate>
                         <target>
                             <packageName>fr.pixel.dao</packageName>
@@ -352,7 +400,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
-                <version>3.0.2</version>
+                <version>3.1.0</version>
                 <configuration>
                     <archive>
                         <manifest>
@@ -363,57 +411,42 @@
                 </configuration>
             </plugin>
 
-            <!-- // Executable Jar // -->
+            <!-- // Build & Executable Jar // -->
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-                <version>3.1.0</version>
+                <groupId>io.fabric8</groupId>
+                <artifactId>vertx-maven-plugin</artifactId>
+                <version>1.0.13</version>
                 <executions>
                     <execution>
-                        <phase>package</phase>
-                        <goals><goal>shade</goal></goals>
-                        <configuration>
-                            <transformers>
-                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <manifestEntries>
-                                        <Main-Class>fr.esgi.ideal.AppLauncher</Main-Class>
-                                        <Main-Verticle>fr.esgi.ideal.AppStartVerticle</Main-Verticle>
-                                        <!--<Main-Command>run</Main-Command>-->
-                                    </manifestEntries>
-                                </transformer>
-                                <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
-                                    <resource>META-INF/services/io.vertx.core.spi.VerticleFactory</resource>
-                                </transformer>
-                            </transformers>
-                            <artifactSet/>
-                            <outputFile>${project.build.directory}/${project.artifactId}-${project.version}-fat.jar</outputFile>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>exec-maven-plugin</artifactId>
-                <version>1.6.0</version>
-                <executions>
-                    <execution>
-                        <id>run-app</id><!-- run the application using the fat jar -->
+                        <id>vmp</id>
                         <goals>
-                            <goal>exec</goal>
+                            <goal>initialize</goal>
+                            <goal>package</goal>
                         </goals>
-                        <configuration>
-                            <executable>java</executable>
-                            <arguments>
-                                <argument>-jar</argument>
-                                <argument>${project.build.directory}/${project.artifactId}-${project.version}-fat.jar</argument>
-                                <!--<argument>list</argument>-->
-                                <!--<argument>run</argument>
-                                <argument>- -help</argument>-->
-                                <!--<argument>-version</argument>-->
-                            </arguments>
-                        </configuration>
                     </execution>
                 </executions>
+                <configuration>
+                    <redeploy>false</redeploy>
+                    <redeployScanPeriod>4000</redeployScanPeriod>
+                    <redeployGracePeriod>10000</redeployGracePeriod>
+                    <redeployTerminationPeriod>5500</redeployTerminationPeriod>
+                    <!--<workDirectory></workDirectory>--><!--default: vertx.directory=${project.basedir}-->
+                    <serviceProviderCombination>combine</serviceProviderCombination>
+                    <attach>true</attach>
+                    <!--<classifier>fat</classifier>-->
+                    <skipScmMetadata>false</skipScmMetadata>
+                    <debugPort>5005</debugPort>
+                    <debugSuspend>true</debugSuspend>
+                    <!--<jvmArgs>
+                        <jvmArg>-Xms512m</jvmArg>
+                        <jvmArg>-Xmx1024m</jvmArg>
+                    </jvmArgs>-->
+                    <!--<runArgs>
+                        <!- -<runArg>list</runArg>- ->
+                        <!- -<runArg>- -help</runArg>- ->
+                        <!- -<runArg>-version</runArg>- ->
+                    </runArgs>-->
+                </configuration>
             </plugin>
         </plugins>
     </build>

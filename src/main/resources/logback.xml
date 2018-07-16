@@ -44,11 +44,17 @@
         <appender-ref ref="FILE" />
     </appender>
 
+    <logger name="liquibase.resource.ClassLoaderResourceAccessor" level="info" />
+    <logger name="liquibase.servicelocator.DefaultPackageScanClassResolver" level="info" />
+    <logger name="liquibase.servicelocator.ServiceLocator" level="info" />
+    <logger name="liquibase.util.MD5Util" level="info"/>
     <logger name="io.netty" level="warn" />
     <logger name="io.vertx" level="info" />
+    <logger name="io.swagger.v3.parser.util.ResolverFully" level="debug"/>
     <logger name="com.mchange" level="warn" />
     <logger name="org.hsqldb" level="info" />
     <logger name="fr.esgi.ideal" level="all" />
+    <!--<logger name="com.p6spy" level="info"/>-->
 
     <root level="debug">
         <appender-ref ref="STDOUT" />
