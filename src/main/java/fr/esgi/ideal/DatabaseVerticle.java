@@ -17,7 +17,10 @@ import fr.esgi.ideal.api.database.codec.UsersMessageCodec;
 import fr.esgi.ideal.internal.FSIO;
 import fr.esgi.ideal.internal.P6Param;
 import fr.esgi.ideal.internal.SqlParam;
+import fr.pixel.dao.tables.ArticlesRates;
 import fr.pixel.dao.tables.daos.AdsDao;
+import fr.pixel.dao.tables.daos.ArticlesDataDao;
+import fr.pixel.dao.tables.daos.ArticlesRatesDao;
 import fr.pixel.dao.tables.daos.ImagesDao;
 import fr.pixel.dao.tables.daos.PartnersDao;
 import fr.pixel.dao.tables.daos.UsersDao;
@@ -59,6 +62,7 @@ import java.util.stream.Stream;
 import static fr.pixel.dao.tables.Ads.ADS;
 import static fr.pixel.dao.tables.Articles.ARTICLES;
 import static fr.pixel.dao.tables.ArticlesData.ARTICLES_DATA;
+import static fr.pixel.dao.tables.ArticlesRates.ARTICLES_RATES;
 import static fr.pixel.dao.tables.Partners.PARTNERS;
 import static fr.pixel.dao.tables.Users.USERS;
 
@@ -152,9 +156,12 @@ public class DatabaseVerticle extends AbstractVerticle {
                                              msg -> execSqlCodec(msg, ArticlesListMessageCodec.class,
                                                                  dsl -> dsl.selectFrom(ARTICLES).fetchInto(Articles.class)));
         this.vertx.eventBus().<Long>consumer(DB_ARTICLE_GET_BY_ID,
-                                             msg -> execSqlRaw(msg, dsl -> dsl.selectFrom(ARTICLES).where(ARTICLES.ID.equal(msg.body())).fetchInto(Articles.class).get(0)));
+                                             msg -> execSqlRaw(msg, dsl -> {try{return dsl.selectFrom(ARTICLES).where(ARTICLES.ID.equal(msg.body())).fetchInto(Articles.class).get(0);}catch(RuntimeException r){return null;}}));
         this.vertx.eventBus().<Long>consumer(DB_ARTICLE_DELETE_BY_ID,
-                                             msg -> execSqlNoReturn(msg, dsl -> dsl.deleteFrom(ARTICLES).where(ARTICLES.ID.equal(msg.body()))));
+                                             msg -> execSqlNoReturn(msg, dsl -> {
+                                                 dsl.deleteFrom(ARTICLES_RATES).where(ARTICLES_RATES.ARTICLE.eq(msg.body()));
+                                                 new ArticlesDataDao(dsl.configuration()).deleteById(msg.body());
+                                             }));
         this.vertx.eventBus().<Articles>consumer(DB_ARTICLE_CREATE,
                 msg -> execSqlRaw(msg, dsl -> dsl.insertInto(ARTICLES_DATA, ARTICLES_DATA.NAME, ARTICLES_DATA.DESCRIPTION, ARTICLES_DATA.PRICE,
                                                              ARTICLES_DATA.UPDATED, ARTICLES_DATA.CREATED, ARTICLES_DATA.IMAGE)
