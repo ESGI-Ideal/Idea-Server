@@ -17,8 +17,22 @@ paths:
         - partner
     #put:
     #  #TODO
-    #post:
-    #  #TODO
+    post:
+      summary: Add new partner
+      description: ''
+      operationId: newPartner
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PartnerContent'
+          application/xml:
+            schema:
+              $ref: '#/components/schemas/PartnerContent'
+      responses:
+        '201':
+          description: 'Create'
   /partner/{id}:
     get:
       summary: informations on an partner
@@ -69,12 +83,19 @@ components:
               format: int64
               minimum: 0
         - $ref: '#/components/schemas/PartnerContent'
+      xml:
+        name: Partner
     PartnerContent:
       type: object
       properties:
         name:
           type: string
         img:
-          $ref: "#/components/schemas/Image"
+          #$ref: "#/components/schemas/Image"
+          type: integer
+          format: int64
+          nullable: true
         description:
           type: string
+      xml:
+        name: PartnerData

@@ -38,7 +38,8 @@ public class User extends AbstractUser {
     /**
      * infos for the image
      */
-    private Image img;
+    //private Image img;
+    private Long img;
 
     @Default private boolean isAdmin = false;
 

@@ -17,8 +17,22 @@ paths:
         - article
     #put:
     #  #TODO
-    #post:
-    #  #TODO
+    post:
+      summary: Add new Article
+      description: ''
+      operationId: newArticle
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ArticleContent'
+          application/xml:
+            schema:
+              $ref: '#/components/schemas/ArticleContent'
+      responses:
+        '201':
+          description: 'Create'
   /article/{id}:
     get:
       summary: informations on an article
@@ -41,7 +55,7 @@ paths:
     #  #TODO
     delete:
       description: ''
-      operationId: 'deleteArticle'
+      operationId: deleteArticle
       parameters:
         - $ref: '#/components/parameters/id'
       responses:
@@ -69,13 +83,18 @@ components:
               format: int64
               minimum: 0
         - $ref: '#/components/schemas/ArticleContent'
+      xml:
+        name: Article
     ArticleContent:
       type: object
       properties:
         name:
           type: string
         img:
-          $ref: "#/components/schemas/Image"
+          #$ref: "#/components/schemas/Image"
+          type: integer
+          format: int64
+          nullable: true
         created:
           type: string
           format: date-time
@@ -90,3 +109,5 @@ components:
         customerRating:
           type: number
           format: int32
+      xml:
+        name: ArticleData

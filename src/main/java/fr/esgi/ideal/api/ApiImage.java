@@ -55,17 +55,17 @@ public class ApiImage implements SubApi<Images, Image> {
         return DbConverter.toAPI(obj);
     }
 
-    @Override
+    /*@Override
     public Images mapFrom(final Image obj) {
         return DbConverter.toDB(obj);
-    }
+    }*/
 
     @Override
     public Future<List<Images>> getAll() {
         final Future<List<Images>> future = Future.future();
-        this.eventBus.<String>send(DatabaseVerticle.DB_IMAGE_GET_ALL, null, asyncMsg -> {
+        this.eventBus.<List<Images>>send(DatabaseVerticle.DB_IMAGE_GET_ALL, null, asyncMsg -> {
             if(asyncMsg.succeeded())
-                future.complete(Json.decodeValue(asyncMsg.result().body(), new TypeReference<List<Images>>(){}));
+                future.complete(asyncMsg.result().body());
             else {
                 log.error("Get error from bus resquest", asyncMsg.cause());
                 future.fail(asyncMsg.cause());
@@ -77,9 +77,9 @@ public class ApiImage implements SubApi<Images, Image> {
     @Override
     public Future<Optional<Images>> get(final Long id) {
         final Future<Optional<Images>> future = Future.future();
-        this.eventBus.<String>send(DatabaseVerticle.DB_IMAGE_GET_BY_ID, id, asyncMsg -> {
+        this.eventBus.<Images>send(DatabaseVerticle.DB_IMAGE_GET_BY_ID, id, asyncMsg -> {
             if(asyncMsg.succeeded())
-                future.complete(Json.decodeValue(asyncMsg.result().body(), new TypeReference<Optional<Images>>(){}));
+                future.complete(Optional.ofNullable(asyncMsg.result().body()));
             else {
                 log.error("Get error from bus resquest", asyncMsg.cause());
                 future.fail(asyncMsg.cause());

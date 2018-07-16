@@ -2,12 +2,14 @@ package fr.esgi.ideal.api;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import fr.esgi.ideal.DatabaseVerticle;
+import fr.esgi.ideal.api.dto.Ad;
 import fr.esgi.ideal.api.dto.DbConverter;
 import fr.esgi.ideal.api.dto.User;
 import fr.pixel.dao.tables.pojos.Users;
 import io.vertx.core.Future;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.json.Json;
+import io.vertx.core.json.JsonObject;
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -17,7 +19,7 @@ import java.util.Optional;
 
 @Slf4j
 @AllArgsConstructor
-public class ApiUser implements SubApi<Users, User> {
+public class ApiUser implements SubApiAlter<Users, User> {
     private final EventBus eventBus;
 
     @Override
@@ -31,11 +33,16 @@ public class ApiUser implements SubApi<Users, User> {
     }
 
     @Override
+    public User mapFrom(final JsonObject obj) {
+        return DbConverter.jsonUser(obj);
+    }
+
+    @Override
     public Future<List<Users>> getAll() {
         final Future<List<Users>> future = Future.future();
-        this.eventBus.<String>send(DatabaseVerticle.DB_USER_GET_ALL, null, asyncMsg -> {
+        this.eventBus.<List<Users>>send(DatabaseVerticle.DB_USER_GET_ALL, null, asyncMsg -> {
             if(asyncMsg.succeeded())
-                future.complete(Json.decodeValue(asyncMsg.result().body(), new TypeReference<List<Users>>(){}));
+                future.complete(asyncMsg.result().body());
             else {
                 log.error("Get error from bus resquest", asyncMsg.cause());
                 future.fail(asyncMsg.cause());
@@ -47,9 +54,9 @@ public class ApiUser implements SubApi<Users, User> {
     @Override
     public Future<Optional<Users>> get(@NonNull final Long id) {
         final Future<Optional<Users>> future = Future.future();
-        this.eventBus.<String>send(DatabaseVerticle.DB_USER_GET_BY_ID, id, asyncMsg -> {
+        this.eventBus.<Users>send(DatabaseVerticle.DB_USER_GET_BY_ID, id, asyncMsg -> {
             if(asyncMsg.succeeded())
-                future.complete(Json.decodeValue(asyncMsg.result().body(), new TypeReference<Optional<Users>>(){}));
+                future.complete(Optional.ofNullable(asyncMsg.result().body()));
             else {
                 log.error("Get error from bus resquest", asyncMsg.cause());
                 future.fail(asyncMsg.cause());
@@ -64,6 +71,21 @@ public class ApiUser implements SubApi<Users, User> {
         this.eventBus.<Void>send(DatabaseVerticle.DB_USER_DELETE_BY_ID, id, asyncMsg -> {
             if(asyncMsg.succeeded())
                 future.complete();
+            else {
+                log.error("Get error from bus resquest", asyncMsg.cause());
+                future.fail(asyncMsg.cause());
+            }
+        });
+        return future;
+    }
+
+    @Override
+    public Future<Long> createOrUpdate(@NonNull final User data) {
+        final Future<Long> future = Future.future();
+        this.eventBus.<Long>send(DatabaseVerticle.DB_USER_CREATE, DbConverter.toDB(data), asyncMsg -> {
+            if(asyncMsg.succeeded())
+                //future.complete(DbConverter.toAPI(asyncMsg.result().body()));
+                future.complete(asyncMsg.result().body());
             else {
                 log.error("Get error from bus resquest", asyncMsg.cause());
                 future.fail(asyncMsg.cause());

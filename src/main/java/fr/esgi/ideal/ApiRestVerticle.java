@@ -90,7 +90,7 @@ public class ApiRestVerticle extends AbstractVerticle {
         addFaviconHandler(router.route()
                 .handler(LoggerHandler.create(/*TODO*/)))
                 .handler(ResponseTimeHandler.create())
-                .handler(TimeoutHandler.create(/*TODO*/))
+                .handler(TimeoutHandler.create(/*32000*/))
                 .handler(CorsHandler.create("*")
                         //.allowedHeaders(new HashSet<>(Arrays.asList("x-requested-with", "Access-Control-Allow-Origin", "origin", "Content-Type", "accept", "X-PINGARUNER")))
                         .allowedMethods(new HashSet<>(Arrays.asList(HttpMethod.values()))))
@@ -152,6 +152,7 @@ public class ApiRestVerticle extends AbstractVerticle {
                             ApiRestVerticle::addHandleAd)
                             .forEach(fnAdd -> fnAdd.accept(this.vertx.eventBus(), routerFactory));
                     addHandleRoot(routerFactory);
+                    addHandleImage(this.vertx, this.vertx.eventBus(), routerFactory);
                     //part_auth(routerFactory);
                     //routerFactory.addHandlerByOperationId("doSearch", routingContext -> {}); //TODO
                 }
@@ -185,6 +186,7 @@ public class ApiRestVerticle extends AbstractVerticle {
         routerFactory.addHandlerByOperationId("getArticles", api::getAll);
         routerFactory.addHandlerByOperationId("getArticle", api::get);
         routerFactory.addHandlerByOperationId("deleteArticle", api::delete);
+        routerFactory.addHandlerByOperationId("newArticle", api::create);
     }
 
     private static void addHandleUser(@NonNull final EventBus eventBus, @NonNull final OpenAPI3RouterFactory routerFactory) {
@@ -192,6 +194,7 @@ public class ApiRestVerticle extends AbstractVerticle {
         routerFactory.addHandlerByOperationId("getUsers", api::getAll);
         routerFactory.addHandlerByOperationId("getUser", api::get);
         routerFactory.addHandlerByOperationId("deleteUser", api::delete);
+        routerFactory.addHandlerByOperationId("newUser", api::create);
         //getCurrentUser
         final ApiAuth auth = new ApiAuth(eventBus);
         /*routerFactory.addSecurityHandler("OAuth2", new AuthHandler() {
@@ -229,6 +232,7 @@ public class ApiRestVerticle extends AbstractVerticle {
         routerFactory.addHandlerByOperationId("getPartners", api::getAll);
         routerFactory.addHandlerByOperationId("getPartner", api::get);
         routerFactory.addHandlerByOperationId("deletePartner", api::delete);
+        routerFactory.addHandlerByOperationId("newPartner", api::create);
     }
 
     private static void addHandleAd(@NonNull final EventBus eventBus, @NonNull final OpenAPI3RouterFactory routerFactory) {
@@ -236,6 +240,7 @@ public class ApiRestVerticle extends AbstractVerticle {
         routerFactory.addHandlerByOperationId("getAds", api::getAll);
         routerFactory.addHandlerByOperationId("getAd", api::get);
         routerFactory.addHandlerByOperationId("deleteAd", api::delete);
+        routerFactory.addHandlerByOperationId("newAd", api::create);
     }
 
     private static void addHandleImage(@NonNull final Vertx vertx, @NonNull final EventBus eventBus, @NonNull final OpenAPI3RouterFactory routerFactory) {

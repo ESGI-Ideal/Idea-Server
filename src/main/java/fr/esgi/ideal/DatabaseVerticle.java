@@ -3,17 +3,40 @@ package fr.esgi.ideal;
 import com.p6spy.engine.spy.P6ModuleManager;
 import com.p6spy.engine.spy.P6SpyOptions;
 import com.p6spy.engine.spy.option.SpyDotProperties;
+import fr.esgi.ideal.api.database.codec.AbstractListMessageCodec;
+import fr.esgi.ideal.api.database.codec.AdsListMessageCodec;
+import fr.esgi.ideal.api.database.codec.AdsMessageCodec;
+import fr.esgi.ideal.api.database.codec.ArticlesListMessageCodec;
+import fr.esgi.ideal.api.database.codec.ArticlesMessageCodec;
+import fr.esgi.ideal.api.database.codec.ImagesListMessageCodec;
+import fr.esgi.ideal.api.database.codec.ImagesMessageCodec;
+import fr.esgi.ideal.api.database.codec.PartnersListMessageCodec;
+import fr.esgi.ideal.api.database.codec.PartnersMessageCodec;
+import fr.esgi.ideal.api.database.codec.UsersListMessageCodec;
+import fr.esgi.ideal.api.database.codec.UsersMessageCodec;
 import fr.esgi.ideal.internal.FSIO;
 import fr.esgi.ideal.internal.P6Param;
 import fr.esgi.ideal.internal.SqlParam;
+import fr.pixel.dao.tables.ArticlesData;
 import fr.pixel.dao.tables.daos.AdsDao;
 import fr.pixel.dao.tables.daos.ImagesDao;
 import fr.pixel.dao.tables.daos.PartnersDao;
 import fr.pixel.dao.tables.daos.UsersDao;
+import fr.pixel.dao.tables.interfaces.IAds;
+import fr.pixel.dao.tables.interfaces.IArticles;
+import fr.pixel.dao.tables.interfaces.IImages;
+import fr.pixel.dao.tables.interfaces.IPartners;
+import fr.pixel.dao.tables.interfaces.IUsers;
+import fr.pixel.dao.tables.pojos.Ads;
 import fr.pixel.dao.tables.pojos.Articles;
+import fr.pixel.dao.tables.pojos.Images;
+import fr.pixel.dao.tables.pojos.Partners;
+import fr.pixel.dao.tables.pojos.Users;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
+import io.vertx.core.eventbus.DeliveryOptions;
 import io.vertx.core.eventbus.Message;
+import io.vertx.core.eventbus.MessageCodec;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.jdbc.JDBCClient;
@@ -33,30 +56,39 @@ import org.jooq.impl.DSL;
 import java.io.IOException;
 import java.sql.Connection;
 import java.util.InvalidPropertiesFormatException;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
+import static fr.pixel.dao.tables.Ads.ADS;
 import static fr.pixel.dao.tables.Articles.ARTICLES;
+import static fr.pixel.dao.tables.ArticlesData.ARTICLES_DATA;
+import static fr.pixel.dao.tables.Partners.PARTNERS;
+import static fr.pixel.dao.tables.Users.USERS;
 
 @Slf4j
 public class DatabaseVerticle extends AbstractVerticle {
     public static final String DB_ARTICLE_GET_ALL = "ApiDatabase_Article_GetAll";
     public static final String DB_ARTICLE_GET_BY_ID = "ApiDatabase_Article_GetById";
     public static final String DB_ARTICLE_DELETE_BY_ID = "ApiDatabase_Article_DeleteById";
+    public static final String DB_ARTICLE_CREATE = "ApiDatabase_Article_Create";
     public static final String DB_PARTNER_GET_ALL = "ApiDatabase_Partner_GetAll";
     public static final String DB_PARTNER_GET_BY_ID = "ApiDatabase_Partner_GetById";
     public static final String DB_PARTNER_DELETE_BY_ID = "ApiDatabase_Partner_DeleteById";
+    public static final String DB_PARTNER_CREATE = "ApiDatabase_Partner_Create";
     public static final String DB_USER_GET_ALL = "ApiDatabase_User_GetAll";
     public static final String DB_USER_GET_BY_ID = "ApiDatabase_User_GetById";
     public static final String DB_USER_AUTH_BY_NAME = "ApiDatabase_User_AuthByName";
     public static final String DB_USER_AUTH_USER_EXIST = "ApiDatabase_User_AuthTestUserExist";
     public static final String DB_USER_DELETE_BY_ID = "ApiDatabase_User_DeleteById";
+    public static final String DB_USER_CREATE = "ApiDatabase_User_Create";
     public static final String DB_AD_GET_ALL = "ApiDatabase_Ads_GetAll";
     public static final String DB_AD_GET_BY_ID = "ApiDatabse_Ads_GetById";
     public static final String DB_AD_DELETE_BY_ID = "ApiDatabse_Ads_DeleteById";
+    public static final String DB_AD_CREATE = "ApiDatabse_Ads_Create";
     public static final String DB_IMAGE_GET_ALL = "ApiDatabse_Image_GetAll";
     public static final String DB_IMAGE_GET_BY_ID = "ApiDatabse_Image_GetById";
     public static final String DB_IMAGE_DELETE_BY_ID = "ApiDatabse_Image_DeleteById";
@@ -75,6 +107,16 @@ public class DatabaseVerticle extends AbstractVerticle {
         log.debug("Starting verticle ...");
         log.debug("config() = {}", this.config().encodePrettily());
         this.start();
+        this.vertx.eventBus().registerDefaultCodec(Users.class, new UsersMessageCodec());
+        this.vertx.eventBus().registerDefaultCodec(Ads.class, new AdsMessageCodec());
+        this.vertx.eventBus().registerDefaultCodec(Articles.class, new ArticlesMessageCodec());
+        this.vertx.eventBus().registerDefaultCodec(Partners.class, new PartnersMessageCodec());
+        this.vertx.eventBus().registerDefaultCodec(Images.class, new ImagesMessageCodec());
+        this.vertx.eventBus().registerCodec(new UsersListMessageCodec());
+        this.vertx.eventBus().registerCodec(new AdsListMessageCodec());
+        this.vertx.eventBus().registerCodec(new ArticlesListMessageCodec());
+        this.vertx.eventBus().registerCodec(new PartnersListMessageCodec());
+        this.vertx.eventBus().registerCodec(new ImagesListMessageCodec());
         /*.put("driver_class", "org.postgresql.Driver")
         .put("url", "jdbc:postgresql://localhost:5432/ideal?tcpKeepAlive=true&loglevel=debug")
         .put("password", "ideal-pwd")*/
@@ -114,37 +156,55 @@ public class DatabaseVerticle extends AbstractVerticle {
     private void initBusConsummers() {
         /* Articles */
         this.vertx.eventBus().<Void>consumer(DB_ARTICLE_GET_ALL,
-                                             msg -> execSql(msg, dsl -> dsl.selectFrom(ARTICLES).fetchInto(Articles.class)));
+                                             msg -> execSqlCodec(msg, ArticlesListMessageCodec.class,
+                                                                 dsl -> dsl.selectFrom(ARTICLES).fetchInto(Articles.class)));
         this.vertx.eventBus().<Long>consumer(DB_ARTICLE_GET_BY_ID,
-                                             msg -> execSql(msg, dsl -> dsl.selectFrom(ARTICLES).where(ARTICLES.ID.equal(msg.body())).fetchInto(Articles.class)));
+                                             msg -> execSqlRaw(msg, dsl -> dsl.selectFrom(ARTICLES).where(ARTICLES.ID.equal(msg.body())).fetchInto(Articles.class)));
         this.vertx.eventBus().<Long>consumer(DB_ARTICLE_DELETE_BY_ID,
-                                            msg -> execSqlNoReturn(msg, dsl -> dsl.deleteFrom(ARTICLES).where(ARTICLES.ID.equal(msg.body()))));
+                                             msg -> execSqlNoReturn(msg, dsl -> dsl.deleteFrom(ARTICLES).where(ARTICLES.ID.equal(msg.body()))));
+        this.vertx.eventBus().<Articles>consumer(DB_ARTICLE_CREATE,
+                msg -> execSqlRaw(msg, dsl -> dsl.insertInto(ARTICLES_DATA, ARTICLES_DATA.NAME, ARTICLES_DATA.DESCRIPTION, ARTICLES_DATA.PRICE,
+                                                             ARTICLES_DATA.UPDATED, ARTICLES_DATA.CREATED, ARTICLES_DATA.IMAGE)
+                          .values(/*msg.body().getId(),*/ msg.body().getName(), msg.body().getDescription(), msg.body().getPrice(),
+                                  msg.body().getUpdated(), msg.body().getCreated(), msg.body().getImage())
+                          .returning().fetchOne().getId()/*.into(Articles.class)*/));
         /* Partners */
         this.vertx.eventBus().<Void>consumer(DB_PARTNER_GET_ALL,
-                                             msg -> execSql(msg, dsl -> new PartnersDao(dsl.configuration()).findAll()));
+                                             msg -> execSqlCodec(msg, PartnersListMessageCodec.class, dsl -> new PartnersDao(dsl.configuration()).findAll()));
         this.vertx.eventBus().<Long>consumer(DB_PARTNER_GET_BY_ID,
-                                             msg -> execSql(msg, dsl -> new PartnersDao(dsl.configuration()).findById(msg.body())));
+                                             msg -> execSqlRaw(msg, dsl -> new PartnersDao(dsl.configuration()).findById(msg.body())));
         this.vertx.eventBus().<Long>consumer(DB_PARTNER_DELETE_BY_ID,
                                              msg -> execSqlNoReturn(msg, dsl -> new PartnersDao(dsl.configuration()).deleteById(msg.body())));
+        this.vertx.eventBus().<Partners>consumer(DB_PARTNER_CREATE,
+                msg -> execSqlRaw(msg, dsl -> dsl.insertInto(PARTNERS, PARTNERS.NAME, PARTNERS.DESCRIPTION, PARTNERS.IMAGE)
+                        .values(/*msg.body().getId(),*/ msg.body().getName(), msg.body().getDescription(), msg.body().getImage())
+                        .returning(PARTNERS.ID).fetchOne().getId()/*.into(Partners.class)*/));
         /* Users */
         this.vertx.eventBus().<Void>consumer(DB_USER_GET_ALL,
-                                             msg -> execSql(msg, dsl -> new UsersDao(dsl.configuration()).findAll()));
+                                             msg -> execSqlCodec(msg, UsersListMessageCodec.class, dsl -> new UsersDao(dsl.configuration()).findAll()));
         this.vertx.eventBus().<Long>consumer(DB_USER_GET_BY_ID,
-                                             msg -> execSql(msg, dsl -> new UsersDao(dsl.configuration()).fetchOneById(msg.body())));
+                                             msg -> execSqlRaw(msg, dsl -> new UsersDao(dsl.configuration()).fetchOneById(msg.body())));
         this.vertx.eventBus().<Long>consumer(DB_USER_DELETE_BY_ID,
                                              msg -> execSqlNoReturn(msg, dsl -> new UsersDao(dsl.configuration()).deleteById(msg.body())));
+        this.vertx.eventBus().<Users>consumer(DB_USER_CREATE,
+                msg -> execSqlRaw(msg, dsl -> dsl.insertInto(USERS, USERS.MAIL, USERS.PSEUDO, USERS.ADMIN, USERS.IMAGE, USERS.CREATED)
+                        .values(/*msg.body().getId(),*/ msg.body().getMail(), msg.body().getPseudo(), msg.body().getAdmin(), msg.body().getImage(), msg.body().getCreated())
+                        .returning().fetchOne().getId()/*.into(Users.class)*/));
         /* Ads */
         this.vertx.eventBus().<Void>consumer(DB_AD_GET_ALL,
-                                             msg -> execSql(msg, dsl -> new AdsDao(dsl.configuration()).findAll()));
+                                             msg -> execSqlCodec(msg, AdsListMessageCodec.class, dsl -> new AdsDao(dsl.configuration()).findAll()));
         this.vertx.eventBus().<Long>consumer(DB_AD_GET_BY_ID,
-                                             msg -> execSql(msg, dsl -> new AdsDao(dsl.configuration()).fetchOneById(msg.body())));
+                                             msg -> execSqlRaw(msg, dsl -> new AdsDao(dsl.configuration()).fetchOneById(msg.body())));
         this.vertx.eventBus().<Long>consumer(DB_AD_DELETE_BY_ID,
                                              msg -> execSqlNoReturn(msg, dsl -> new AdsDao(dsl.configuration()).deleteById(msg.body())));
+        this.vertx.eventBus().<Ads>consumer(DB_AD_CREATE,
+               msg -> execSqlRaw(msg, dsl -> dsl.insertInto(ADS, ADS.IMAGE, ADS.TITLE)
+                       .values(/*msg.body().getId(),*/ msg.body().getImage(), msg.body().getTitle()).returning().fetchOne().getId()/*.into(Ads.class)*/));
         /* Images */
         this.vertx.eventBus().<Void>consumer(DB_IMAGE_GET_ALL,
-                                             msg -> execSql(msg, dsl -> new ImagesDao(dsl.configuration()).findAll()));
+                                             msg -> execSqlCodec(msg, ImagesListMessageCodec.class, dsl -> new ImagesDao(dsl.configuration()).findAll()));
         this.vertx.eventBus().<Long>consumer(DB_IMAGE_GET_BY_ID,
-                                             msg -> execSql(msg, dsl -> new ImagesDao(dsl.configuration()).fetchOneById(msg.body())));
+                                             msg -> execSqlRaw(msg, dsl -> new ImagesDao(dsl.configuration()).fetchOneById(msg.body())));
         this.vertx.eventBus().<Long>consumer(DB_IMAGE_DELETE_BY_ID,
                                              msg -> execSqlNoReturn(msg, dsl -> new ImagesDao(dsl.configuration()).deleteById(msg.body())));
         /* Authentification */
@@ -259,6 +319,29 @@ public class DatabaseVerticle extends AbstractVerticle {
                 final Object tmp = getter.apply(this.mapDslContext(result.result().unwrap()));
                 result.result().close();
                 msg.reply(Json.encode(tmp));
+            } else
+                msg.fail(-1, result.cause().getMessage());
+        });
+    }
+
+    private <M> void execSqlRaw(@NonNull final Message<M> msg, @NonNull final Function<DSLContext, ?> getter) {
+        this.client.getConnection(result -> {
+            if (result.succeeded()) {
+                final Object tmp = getter.apply(this.mapDslContext(result.result().unwrap()));
+                result.result().close();
+                msg.reply(tmp);
+            } else
+                msg.fail(-1, result.cause().getMessage());
+        });
+    }
+
+    private <M> void execSqlCodec(@NonNull final Message<M> msg, @NonNull final Class<? extends AbstractListMessageCodec> codec, @NonNull final Function<DSLContext, List<?>> getter) {
+        this.client.getConnection(result -> {
+            if (result.succeeded()) {
+                final Object tmp = getter.apply(this.mapDslContext(result.result().unwrap()));
+                result.result().close();
+                DeliveryOptions ops = new DeliveryOptions(); ops.setCodecName(codec.getSimpleName());
+                msg.reply(tmp, ops);
             } else
                 msg.fail(-1, result.cause().getMessage());
         });

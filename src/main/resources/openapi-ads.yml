@@ -19,8 +19,22 @@ paths:
         - ads
     #put:
     #  #TODO
-    #post:
-    #  #TODO
+    post:
+      summary: Add new ad
+      description: ''
+      operationId: newAd
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdContent'
+          application/xml:
+            schema:
+              $ref: '#/components/schemas/AdContent'
+      responses:
+        '201':
+          description: 'Create'
   /ad/{id}:
     get:
       summary: informations on an ad
@@ -71,6 +85,8 @@ components:
               format: int64
               minimum: 0
         - $ref: '#/components/schemas/AdContent'
+      xml:
+        name: Ad
     AdContent:
       type: object
       properties:
@@ -78,4 +94,9 @@ components:
           type: string
           description: Short tip about the ad
         img:
-          $ref: "#/components/schemas/Image"
+          #$ref: "#/components/schemas/Image"
+          type: integer
+          format: int64
+          nullable: true
+      xml:
+        name: AdData

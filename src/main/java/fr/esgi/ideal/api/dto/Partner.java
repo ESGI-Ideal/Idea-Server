@@ -19,7 +19,8 @@ public class Partner {
     /**
      * Infos on image
      */
-    private Image img;
+    //private Image img;
+    private Long img;
 
     /**
      * Description about the partner

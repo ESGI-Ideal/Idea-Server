@@ -10,11 +10,15 @@ import fr.pixel.dao.tables.pojos.Articles;
 import fr.pixel.dao.tables.pojos.Images;
 import fr.pixel.dao.tables.pojos.Partners;
 import fr.pixel.dao.tables.pojos.Users;
+import io.vertx.core.json.Json;
+import io.vertx.core.json.JsonObject;
+import jdk.nashorn.internal.runtime.JSONFunctions;
 import lombok.experimental.UtilityClass;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
+import java.util.Optional;
 
 /**
  * Converter of beans between DB DAO and API DTO
@@ -28,7 +32,23 @@ public class DbConverter {
                     .inscription(null)
                     .isAdmin(db.getAdmin())
                     .mail(db.getMail())
-                    .img(null) //TODO
+                    .img(db.getImage()) //TODO
+                    .build();
+            /*if(db.getCreated() != null)
+                user.setInscription(TODO);*/
+            return user;
+        } else
+            return null;
+    }
+
+    public static User jsonUser(final JsonObject db) {
+        if(db != null) {
+            final User user = User.builder()
+                    .id(db.getLong("id"))
+                    .inscription(null)
+                    //.isAdmin(db.getBoolean())
+                    .mail(db.getString("email"))
+                    .img(db.getLong("img")) //TODO
                     .build();
             /*if(db.getCreated() != null)
                 user.setInscription(TODO);*/
@@ -39,7 +59,7 @@ public class DbConverter {
 
     public static Users toDB(final User api) {
         if(api != null) {
-            final Users user = new Users(api.getId(), null, /*api.getImg()*/null, api.getMail(), convert(api.getInscription()), api.isAdmin());
+            final Users user = new Users(api.getId(), null, api.getImg(), api.getMail(), convert(api.getInscription()), api.isAdmin());
             return user;
         } else
             return null;
@@ -55,7 +75,28 @@ public class DbConverter {
                     .description(db.getDescription())
                     .price(null) //TODO
                     .customerRating(Math.toIntExact(db.getRate()))
-                    .img(null) //TODO
+                    .img(db.getImage()) //TODO
+                    .build();
+            /*if(db.getCreated() != null)
+                article.setCreated(TODO);
+            if(db.getCreated() != null)
+                article.setCreated(TODO);*/
+            return article;
+        } else
+            return null;
+    }
+
+    public static Article jsonArticle(final JsonObject db) {
+        if(db != null) {
+            final Article article = Article.builder()
+                    .id(db.getLong("id"))
+                    .name(db.getString("name"))
+                    .created(null)
+                    .updated(null)
+                    .description(db.getString("description"))
+                    .price(null) //TODO
+                    .customerRating(db.getInteger("price"))
+                    .img(db.getLong("id")) //TODO
                     .build();
             /*if(db.getCreated() != null)
                 article.setCreated(TODO);
@@ -68,8 +109,8 @@ public class DbConverter {
 
     public static Articles toDB(final Article api) {
         if(api != null) {
-            final Articles article = new Articles(api.getId(), api.getName(), /*api.getImg()*/null, api.getDescription(), /*api.getPrice()*/null,
-                    convert(api.getCreated()), convert(api.getUpdated()), (long)api.getCustomerRating());
+            final Articles article = new Articles(api.getId(), api.getName(), api.getImg(), api.getDescription(), /*api.getPrice()*/null,
+                    convert(api.getCreated()), convert(api.getUpdated()), Optional.ofNullable(api.getCustomerRating()).map(Integer::longValue).orElse(null));
             return article;
         } else
             return null;
@@ -81,7 +122,19 @@ public class DbConverter {
                     .id(db.getId())
                     .name(db.getName())
                     .description(db.getDescription())
-                    .img(null) //TODO
+                    .img(db.getImage()) //TODO
+                    .build();
+        } else
+            return null;
+    }
+
+    public static Partner jsonPartner(final JsonObject db) {
+        if(db != null) {
+            return Partner.builder()
+                    .id(db.getLong("id"))
+                    .name(db.getString("name"))
+                    .description(db.getString("description"))
+                    .img(db.getLong("img")) //TODO
                     .build();
         } else
             return null;
@@ -89,7 +142,7 @@ public class DbConverter {
 
     public static Partners toDB(final Partner api) {
         if(api != null) {
-            final Partners partener = new Partners(api.getId(),api.getName(), api.getDescription(), /*api.getImg()*/null);
+            final Partners partener = new Partners(api.getId(),api.getName(), api.getDescription(), api.getImg());
             return partener;
         } else
             return null;
@@ -100,7 +153,18 @@ public class DbConverter {
             return Ad.builder()
                     .id(db.getId())
                     .description(db.getTitle())
-                    .img(null) //TODO
+                    .img(db.getImage()) //TODO
+                    .build();
+        } else
+            return null;
+    }
+
+    public static Ad jsonAds(final JsonObject db) {
+        if(db != null) {
+            return Ad.builder()
+                    .id(db.getLong("id"))
+                    .description(db.getString("description"))
+                    .img(db.getLong("img")) //TODO
                     .build();
         } else
             return null;
@@ -108,7 +172,7 @@ public class DbConverter {
 
     public static Ads toDB(final Ad api) {
         if(api != null) {
-            final Ads ad = new Ads(api.getId(), api.getDescription(), /*api.getImg()*/null);
+            final Ads ad = new Ads(api.getId(), api.getDescription(), api.getImg());
             return ad;
         } else
             return null;

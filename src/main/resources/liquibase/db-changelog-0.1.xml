@@ -67,5 +67,18 @@
         <modifyDataType tableName="articles_data" columnName="image" newDataType="bigint" />
         <addForeignKeyConstraint baseTableName="articles_data" baseColumnNames="image" constraintName="fk_article_img" referencedTableName="images" referencedColumnNames="id" />
         <createView viewName="articles">select articles_data.*, sum(case when adore then 1 else 0 end) as rate from articles_data left join articles_rates on id=article group by id</createView>
+        <modifyDataType tableName="partners" columnName="image" newDataType="bigint" />
+        <addForeignKeyConstraint baseTableName="partners" baseColumnNames="image" constraintName="fk_partner_img" referencedTableName="images" referencedColumnNames="id" />
+    </changeSet>
+
+    <changeSet id="04-add-image-null" author="Tristan">
+        <insert tableName="images">
+            <column name="id" value="0"/>
+            <column name="hash" value="45a46238e0c0821fc1b96e03ee09af7b55ab3565d02417a6ddea51daf861ce8d"/>
+            <column name="filename" value="240px-No_image_available.png"/>
+            <column name="hashfile" value="45a46238e0c0821fc1b96e03ee09af7b55ab3565d02417a6ddea51daf861ce8d"/>
+            <column name="width" value="240"/>
+            <column name="height" value="240"/>
+        </insert>
     </changeSet>
 </databaseChangeLog>

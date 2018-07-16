@@ -13,7 +13,6 @@ import java.util.stream.Collectors;
 
 public interface SubApi<POJO, DTO> {
     DTO mapTo(POJO obj);
-    POJO mapFrom(DTO obj);
 
     Future<List<POJO>> getAll();
 

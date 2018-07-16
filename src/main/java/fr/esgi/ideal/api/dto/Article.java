@@ -38,7 +38,8 @@ public class Article {
     /**
      * Infos on image
      */
-    private Image img;
+    //private Image img;
+    private Long img;
 
     /**
      * Rate satisfaction for the product by customers

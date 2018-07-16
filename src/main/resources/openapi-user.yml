@@ -17,8 +17,22 @@ paths:
         - user
     #put:
     #  #TODO
-    #post:
-    #  #TODO
+    post:
+      summary: Add new user
+      description: ''
+      operationId: newUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserContent'
+          application/xml:
+            schema:
+              $ref: '#/components/schemas/UserContent'
+      responses:
+        '201':
+          description: 'Create'
   /user/{id}:
     get:
       summary: informations on an user
@@ -85,6 +99,8 @@ components:
               format: int64
               minimum: 0
         - $ref: '#/components/schemas/UserContent'
+      xml:
+        name: User
     UserContent:
       type: object
       properties:
@@ -95,11 +111,14 @@ components:
         #lastName:
         #  type: string
         img:
-          $ref: "#/components/schemas/Image"
+          #$ref: "#/components/schemas/Image"
+          type: integer
+          format: int64
+          nullable: true
         email:
           type: string
         inscription:
           type: string
           format: date
       xml:
-        name: User
+        name: UserData
