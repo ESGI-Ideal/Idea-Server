@@ -1,11 +1,8 @@
 package fr.esgi.ideal.api;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import fr.esgi.ideal.DatabaseVerticle;
 import fr.esgi.ideal.api.dto.DbConverter;
 import fr.esgi.ideal.api.dto.Image;
-import fr.esgi.ideal.internal.FSIO;
-import fr.pixel.dao.tables.pojos.Ads;
 import fr.pixel.dao.tables.pojos.Images;
 import io.vertx.core.Future;
 import io.vertx.core.MultiMap;
@@ -16,7 +13,6 @@ import io.vertx.core.file.AsyncFile;
 import io.vertx.core.file.OpenOptions;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
-import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.streams.Pump;
 import io.vertx.ext.web.FileUpload;
@@ -28,17 +24,14 @@ import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
-import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;

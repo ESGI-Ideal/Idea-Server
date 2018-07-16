@@ -14,10 +14,8 @@ import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
-import lombok.val;
 
 import java.util.NoSuchElementException;
-import java.util.Optional;
 
 @Slf4j
 @UtilityClass

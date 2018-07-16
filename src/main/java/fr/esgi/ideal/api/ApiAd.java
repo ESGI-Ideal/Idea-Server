@@ -1,6 +1,5 @@
 package fr.esgi.ideal.api;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import fr.esgi.ideal.DatabaseVerticle;
 import fr.esgi.ideal.api.dto.Ad;
 import fr.esgi.ideal.api.dto.DbConverter;

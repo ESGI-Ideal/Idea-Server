@@ -1,10 +1,8 @@
 package fr.esgi.ideal.api.database.codec;
 
-import fr.pixel.dao.tables.interfaces.IAds;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.eventbus.MessageCodec;
 import io.vertx.core.json.JsonArray;
-import io.vertx.core.json.JsonObject;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 
