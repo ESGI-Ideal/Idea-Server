@@ -1,11 +1,11 @@
 package fr.esgi.ideal.api;
 
+import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.api.RequestParameters;
 import lombok.NonNull;
-import lombok.extern.slf4j.Slf4j;
 
 public interface SubApiAlter<POJO, DTO> extends SubApi<POJO, DTO> {
     POJO mapFrom(DTO obj);
@@ -20,7 +20,7 @@ public interface SubApiAlter<POJO, DTO> extends SubApi<POJO, DTO> {
         this.createOrUpdate(mapFrom(((RequestParameters) routingContext.get("parsedParameters")).body().getJsonObject())).setHandler(res -> {
             if(res.succeeded()) {
                 //routingContext.response().putHeader("location", Objects.toString(res.result())).setStatusCode(302).end();
-                RouteUtils.send(routingContext, res.result());
+                RouteUtils.send(routingContext, HttpResponseStatus.CREATED, new JsonObject().put("id", res.result()));
             } else
                 RouteUtils.error(routingContext, "An error occur on the server");
         });

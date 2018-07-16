@@ -3,6 +3,7 @@ package fr.esgi.ideal.api;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import io.netty.handler.codec.http.HttpResponseStatus;
+import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
@@ -12,10 +13,13 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.experimental.UtilityClass;
+import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 
 import java.util.NoSuchElementException;
+import java.util.Optional;
 
+@Slf4j
 @UtilityClass
 class RouteUtils {
     @Getter(lazy = true, value = AccessLevel.PRIVATE) private static final XmlMapper xmlMapper = (XmlMapper) new XmlMapper()
@@ -31,18 +35,14 @@ class RouteUtils {
 
     @SneakyThrows
     public static void send(@NonNull final RoutingContext rtgCtx, final HttpResponseStatus responseStatus, final Object result) {
-        val response = rtgCtx.response().setStatusCode(responseStatus.code()).setStatusMessage(responseStatus.reasonPhrase());
-        switch(rtgCtx.getAcceptableContentType()) {
-            case "text/xml":
-            case "application/xml":
-                response.end(getXmlMapper().writeValueAsString(result));
-                break;
-            /*case "text/plain":
-                break;*/
-            //case "application/json":
-            default:
-                response.end(Json.encode/*Prettily*/(result));
-        }
+        log.debug("send http : {}, {}, {}", rtgCtx, responseStatus, result);
+        HttpServerResponse response = rtgCtx.response().setStatusCode(responseStatus.code()).setStatusMessage(responseStatus.reasonPhrase());
+        final String acceptableContentType = rtgCtx.getAcceptableContentType();
+        if("text/xml".equalsIgnoreCase(acceptableContentType) || "application/xml".equalsIgnoreCase(acceptableContentType))
+            response.end(getXmlMapper().writeValueAsString(result));
+        //if("text/plain")
+        else //if("application/json")
+            response.end(Json.encode/*Prettily*/(result));
     }
 
     public static void send(@NonNull final RoutingContext rtgCtx, Object result) {
