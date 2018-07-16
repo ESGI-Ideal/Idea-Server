@@ -71,7 +71,7 @@ public class DbConverter {
                     .created(null)
                     .updated(null)
                     .description(db.getDescription())
-                    .price(null) //TODO
+                    .price(Optional.ofNullable(db.getPrice()).map(Double::floatValue).orElse(null))
                     .customerRating(Math.toIntExact(db.getRate()))
                     .img(db.getImage()) //TODO
                     .build();
@@ -92,8 +92,8 @@ public class DbConverter {
                     .created(null)
                     .updated(null)
                     .description(db.getString("description"))
-                    .price(null) //TODO
-                    .customerRating(db.getInteger("price"))
+                    .price(db.getFloat("price"))
+                    //.customerRating(db.getInteger("customerRating"))
                     .img(db.getLong("id")) //TODO
                     .build();
             /*if(db.getCreated() != null)
@@ -107,7 +107,7 @@ public class DbConverter {
 
     public static Articles toDB(final Article api) {
         if(api != null) {
-            final Articles article = new Articles(api.getId(), api.getName(), api.getImg(), api.getDescription(), /*api.getPrice()*/null,
+            final Articles article = new Articles(api.getId(), api.getName(), api.getImg(), api.getDescription(), Optional.ofNullable(api.getPrice()).map(Float::doubleValue).orElse(null),
                     convert(api.getCreated()), convert(api.getUpdated()), Optional.ofNullable(api.getCustomerRating()).map(Integer::longValue).orElse(null));
             return article;
         } else

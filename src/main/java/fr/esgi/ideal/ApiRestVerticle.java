@@ -92,7 +92,8 @@ public class ApiRestVerticle extends AbstractVerticle {
                 .handler(ResponseTimeHandler.create())
                 .handler(TimeoutHandler.create(/*32000*/))
                 .handler(CorsHandler.create("*")
-                        //.allowedHeaders(new HashSet<>(Arrays.asList("x-requested-with", "Access-Control-Allow-Origin", "origin", "Content-Type", "accept", "X-PINGARUNER")))
+                        .maxAgeSeconds(86400)
+                        .allowedHeaders(new HashSet<>(Arrays.asList("x-requested-with", "Access-Control-Allow-Origin", "origin", "Content-Type", "accept", "X-PINGARUNER", "X-PINGOTHER")))
                         .allowedMethods(new HashSet<>(Arrays.asList(HttpMethod.values()))))
                 /*.handler(context -> {
                     context.response()
