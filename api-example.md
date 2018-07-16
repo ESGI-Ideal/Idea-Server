@@ -2,6 +2,8 @@ GET http://localhost/[partner, user, ad, article, image]
 
 GET http://localhost/[partner, user, ad, article, image]/{id}
 
+GET http://localhost/image/{id}/file
+
 DELETE http://localhost/[partner, user, ad, article, image]/{id}
 
 POST http://localhost/partner

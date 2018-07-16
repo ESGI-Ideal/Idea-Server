@@ -3,6 +3,7 @@ package fr.esgi.ideal.api;
 import fr.esgi.ideal.DatabaseVerticle;
 import fr.esgi.ideal.api.dto.DbConverter;
 import fr.esgi.ideal.api.dto.Image;
+import fr.esgi.ideal.internal.FSIO;
 import fr.pixel.dao.tables.pojos.Images;
 import io.vertx.core.Future;
 import io.vertx.core.MultiMap;
@@ -28,6 +29,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
+import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Iterator;
@@ -42,6 +44,14 @@ public class ApiImage implements SubApi<Images, Image> {
     private final Vertx vertx;
     private final EventBus eventBus;
     //private ImageManager imgManager;
+    private final Path noimg = getNoImg();
+    private static Path getNoImg() {
+        try {
+            return FSIO.getResourceAsExternal("240px-No_image_available.png").toAbsolutePath();
+        } catch(IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     @Override
     public Image mapTo(final Images obj) {
@@ -95,7 +105,7 @@ public class ApiImage implements SubApi<Images, Image> {
         return future;
     }
 
-    public void getFile(@NonNull final RoutingContext routingContext){} //TODO
+    public void getFile(@NonNull final RoutingContext routingContext) { routingContext.response().sendFile(this.noimg.toString()); }
     public void getThumb(@NonNull final RoutingContext routingContext){} //TODO
     public void upload(@NonNull final RoutingContext routingContext){webupload(routingContext);} //TODO
 

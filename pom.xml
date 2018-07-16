@@ -4,7 +4,7 @@
 
     <groupId>fr.esgi.ideal</groupId>
     <artifactId>api-server</artifactId>
-    <version>1.0.3</version>
+    <version>1.0.4</version>
     <packaging>jar</packaging>
 
     <name>api-server</name>
