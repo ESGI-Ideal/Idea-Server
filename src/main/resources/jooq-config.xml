@@ -7,6 +7,8 @@
     <statementType>PREPARED_STATEMENT</statementType>
     <renderSchema>false</renderSchema>
     <renderFormatted>true</renderFormatted>
+    <renderNameStyle>LOWER</renderNameStyle>
+    <renderKeywordStyle>AS_IS</renderKeywordStyle>
     <paramCastMode>DEFAULT</paramCastMode>
     <!--<paramType></paramType>-->
     <!--<maxRows></maxRows>-->
@@ -14,6 +16,7 @@
     <reflectionCaching>false</reflectionCaching>
     <cacheRecordMappers>false</cacheRecordMappers>
     <!--<delimiter>;</delimiter>-->
+    <!--<renderScalarSubqueriesForStoredFunctions>true</renderScalarSubqueriesForStoredFunctions>-->
 
     <executeLogging>true</executeLogging>
     <executeDeleteWithoutWhere>THROW</executeDeleteWithoutWhere>

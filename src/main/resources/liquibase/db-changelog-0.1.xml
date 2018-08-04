@@ -66,7 +66,7 @@
         <dropView viewName="articles" /><!--DatabaseException: dependent objects exist: PUBLIC.ARTICLES in statement [ALTER TABLE articles_data ALTER COLUMN image BIGINT]-->
         <modifyDataType tableName="articles_data" columnName="image" newDataType="bigint" />
         <addForeignKeyConstraint baseTableName="articles_data" baseColumnNames="image" constraintName="fk_article_img" referencedTableName="images" referencedColumnNames="id" />
-        <createView viewName="articles">select articles_data.*, sum(case when adore then 1 else 0 end) as rate from articles_data left join articles_rates on id=article group by id</createView>
+        <createView viewName="articles"><![CDATA[select articles_data.*, sum(case when adore then 1 else 0 end) as rate from articles_data left join articles_rates on id=article group by id]]></createView>
         <modifyDataType tableName="partners" columnName="image" newDataType="bigint" />
         <addForeignKeyConstraint baseTableName="partners" baseColumnNames="image" constraintName="fk_partner_img" referencedTableName="images" referencedColumnNames="id" />
     </changeSet>
@@ -85,7 +85,7 @@
     <changeSet id="05-bad-types" author="Tristan">
         <dropView viewName="articles" /><!--DatabaseException: dependent objects exist: PUBLIC.ARTICLES in statement [ALTER TABLE articles_data ALTER COLUMN image BIGINT]-->
         <modifyDataType tableName="articles_data" columnName="price" newDataType="real" /><!--real,float(4),float4-->
-        <createView viewName="articles">select articles_data.*, sum(case when adore then 1 else 0 end) as rate from articles_data left join articles_rates on id=article group by id</createView>
+        <createView viewName="articles"><![CDATA[select articles_data.*, sum(case when adore then 1 else 0 end) as rate from articles_data left join articles_rates on id=article group by id]]></createView>
     </changeSet>
 
     <changeSet id="05-temp-change" author="Tristan">
