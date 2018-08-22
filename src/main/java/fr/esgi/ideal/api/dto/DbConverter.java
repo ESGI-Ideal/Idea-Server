@@ -1,15 +1,15 @@
 package fr.esgi.ideal.api.dto;
 
-import fr.pixel.dao.tables.interfaces.IAds;
-import fr.pixel.dao.tables.interfaces.IArticles;
-import fr.pixel.dao.tables.interfaces.IImages;
-import fr.pixel.dao.tables.interfaces.IPartners;
-import fr.pixel.dao.tables.interfaces.IUsers;
-import fr.pixel.dao.tables.pojos.Ads;
-import fr.pixel.dao.tables.pojos.Articles;
-import fr.pixel.dao.tables.pojos.Images;
-import fr.pixel.dao.tables.pojos.Partners;
-import fr.pixel.dao.tables.pojos.Users;
+import fr.esgi.ideal.dao.tables.interfaces.IAds;
+import fr.esgi.ideal.dao.tables.interfaces.IArticles;
+import fr.esgi.ideal.dao.tables.interfaces.IImages;
+import fr.esgi.ideal.dao.tables.interfaces.IPartners;
+import fr.esgi.ideal.dao.tables.interfaces.IUsers;
+import fr.esgi.ideal.dao.tables.pojos.Ads;
+import fr.esgi.ideal.dao.tables.pojos.Articles;
+import fr.esgi.ideal.dao.tables.pojos.Images;
+import fr.esgi.ideal.dao.tables.pojos.Partners;
+import fr.esgi.ideal.dao.tables.pojos.Users;
 import io.vertx.core.json.JsonObject;
 import lombok.experimental.UtilityClass;
 

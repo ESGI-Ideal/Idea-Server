@@ -1,6 +1,6 @@
 package fr.esgi.ideal.api.database.codec;
 
-import fr.pixel.dao.tables.pojos.Partners;
+import fr.esgi.ideal.dao.tables.pojos.Partners;
 import io.vertx.core.json.JsonObject;
 
 public class PartnersMessageCodec extends AbstractMessageCodec<Partners> {

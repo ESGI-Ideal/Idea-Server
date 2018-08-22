@@ -4,7 +4,7 @@
 
     <groupId>fr.esgi.ideal</groupId>
     <artifactId>api-server</artifactId>
-    <version>1.0.4</version>
+    <version>1.0.5-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>api-server</name>
@@ -358,7 +358,7 @@
                             <globalSchemaReferences>false</globalSchemaReferences>
                         </generate>
                         <target>
-                            <packageName>fr.pixel.dao</packageName>
+                            <packageName>fr.esgi.ideal.dao</packageName>
                             <directory>${project.build.directory}/generated-sources/jooq</directory>
                             <clean>true</clean>
                             <encoding>${project.build.sourceEncoding}</encoding>

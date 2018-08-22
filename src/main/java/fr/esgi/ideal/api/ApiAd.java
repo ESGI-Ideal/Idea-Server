@@ -3,7 +3,7 @@ package fr.esgi.ideal.api;
 import fr.esgi.ideal.DatabaseVerticle;
 import fr.esgi.ideal.api.dto.Ad;
 import fr.esgi.ideal.api.dto.DbConverter;
-import fr.pixel.dao.tables.pojos.Ads;
+import fr.esgi.ideal.dao.tables.pojos.Ads;
 import io.vertx.core.Future;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.json.Json;

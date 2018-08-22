@@ -4,7 +4,7 @@ import fr.esgi.ideal.DatabaseVerticle;
 import fr.esgi.ideal.api.dto.DbConverter;
 import fr.esgi.ideal.api.dto.Image;
 import fr.esgi.ideal.internal.FSIO;
-import fr.pixel.dao.tables.pojos.Images;
+import fr.esgi.ideal.dao.tables.pojos.Images;
 import io.vertx.core.Future;
 import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;

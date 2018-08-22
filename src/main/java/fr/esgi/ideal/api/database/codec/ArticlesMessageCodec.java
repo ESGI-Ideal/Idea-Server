@@ -1,6 +1,6 @@
 package fr.esgi.ideal.api.database.codec;
 
-import fr.pixel.dao.tables.pojos.Articles;
+import fr.esgi.ideal.dao.tables.pojos.Articles;
 import io.vertx.core.json.JsonObject;
 
 public class ArticlesMessageCodec extends AbstractMessageCodec<Articles> {
