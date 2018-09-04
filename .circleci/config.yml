@@ -14,11 +14,24 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-          - v1-dependencies-{{ checksum "pom.xml" }}
-          - v1-dependencies-
+            - source-v1-{{ .Branch }}-{{ .Revision }}
+            - source-v1-{{ .Branch }}-
+            - source-v1-
+            #- m2-{{ checksum "pom.xml" }}
+            #- m2-
       - run: mvn dependency:go-offline
       - save_cache:
           paths:
             - ~/.m2
-          key: v1-dependencies-{{ checksum "pom.xml" }}
+          key: source-v1-{{ .Branch }}-{{ .Revision }}
+
+      - run: mvn package -DskipTests -Dmaven.test.skip=true
       #- run: mvn integration-test
+      - store_test_results:
+          path: target/surefire-reports
+      - run: |
+            mkdir -p /tmp/artifact
+            cp target/*.jar /tmp/artifact
+      - store_artifacts:
+          path: /tmp/artifact
+          destination: artifacts/
