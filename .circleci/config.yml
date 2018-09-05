@@ -41,8 +41,8 @@ jobs:
       - checkout
       - *restore_cache
       - run: mvn dependency:go-offline
+      - run: mvn clean package -DskipTests -Dmaven.test.skip=true
       - *save_cache
-      - run: mvn package -DskipTests -Dmaven.test.skip=true
       - persist_to_workspace:
           root: *workspace_root
           paths:
@@ -59,7 +59,7 @@ jobs:
     steps:
       - *restore_cache
       - *attach_workspace
-      - run: mvn package -DskipTests -Dmaven.test.skip=true
+      - run: mvn test
       #- run: mvn integration-test
       - store_test_results:
           path: target/surefire-reports
