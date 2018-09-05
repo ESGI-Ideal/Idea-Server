@@ -1,37 +1,70 @@
 version: 2
+references:
+    common:
+        workspace_root: &workspace_root
+            ~/repo
+        attach_workspace: &attach_workspace
+            attach_workspace:
+                at: *workspace_root
+        restore_cache: &restore_cache
+            restore_cache:
+                keys:
+                    - source-v1-{{ .Branch }}-{{ .Revision }}
+                    - source-v1-{{ .Branch }}-
+                    - source-v1-
+                    #- m2-{{ checksum "pom.xml" }}
+                    #- m2-
+        save_cache: &save_cache
+            save_cache:
+                paths:
+                    - ~/.m2
+                key: source-v1-{{ .Branch }}-{{ .Revision }}
+
+    env_jobs:
+        default_config: &common_config
+            working_directory: *workspace_root
+        java_default_config: &java_default_config
+            docker:
+                - image: circleci/openjdk:8-jdk
+            environment:
+                MAVEN_OPTS: -Xmx3200m
+            <<: *common_config
+
 jobs:
   build:
-    docker:
-      - image: circleci/openjdk:8-jdk
-      # - image: circleci/postgres:9.4
-
-    working_directory: ~/repo
-
-    environment:
-      MAVEN_OPTS: -Xmx3200m
-
+    <<: *java_default_config
     steps:
       - checkout
-      - restore_cache:
-          keys:
-            - source-v1-{{ .Branch }}-{{ .Revision }}
-            - source-v1-{{ .Branch }}-
-            - source-v1-
-            #- m2-{{ checksum "pom.xml" }}
-            #- m2-
+      - *restore_cache
       - run: mvn dependency:go-offline
-      - save_cache:
-          paths:
-            - ~/.m2
-          key: source-v1-{{ .Branch }}-{{ .Revision }}
-
+      - *save_cache
       - run: mvn package -DskipTests -Dmaven.test.skip=true
-      #- run: mvn integration-test
-      - store_test_results:
-          path: target/surefire-reports
+      - persist_to_workspace:
+          root: *workspace_root
+          paths:
+            - .
       - run: |
             mkdir -p /tmp/artifact
             cp target/*.jar /tmp/artifact
       - store_artifacts:
           path: /tmp/artifact
           destination: artifacts/
+
+  test:
+    <<: *java_default_config
+    steps:
+      - *restore_cache
+      - *attach_workspace
+      - run: mvn package -DskipTests -Dmaven.test.skip=true
+      #- run: mvn integration-test
+      - store_test_results:
+          path: target/surefire-reports
+
+workflows:
+  version: 2
+  complete-flow:
+    jobs:
+      - build
+      - test:
+          requires:
+            - build
