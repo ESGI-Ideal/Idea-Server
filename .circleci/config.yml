@@ -29,6 +29,10 @@ references:
             environment:
                 MAVEN_OPTS: -Xmx3200m
             <<: *common_config
+        release_default_config: &release_default_config
+            docker:
+                - image: cibuilds/github:0.10
+            <<: *common_config
 
 jobs:
   build:
@@ -60,6 +64,22 @@ jobs:
       - store_test_results:
           path: target/surefire-reports
 
+  release:
+    <<: *release_default_config
+    steps:
+      - *attach_workspace
+      - run:
+          name: "Publish Release on GitHub"
+          command: ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -n "Auto release from ${CIRCLE_BRANCH}" -replace -draft TAG /tmp/artifact/
+
+  release-develop:
+    <<: *release_default_config
+    steps:
+      - *attach_workspace
+      - run:
+          name: "Publish Release on GitHub"
+          command: ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -n "Auto release from ${CIRCLE_BRANCH}" -replace -prerelease -draft TAG /tmp/artifact/
+
 workflows:
   version: 2
   complete-flow:
@@ -68,3 +88,21 @@ workflows:
       - test:
           requires:
             - build
+      - release:
+          requires: &flow-release-requires
+            - test
+          filters:
+            branches:
+              #ignore: /.*/
+              only: master
+            tags: &flow-release-filter
+              only: /^[vV]?\d+(\.\d+)*$/
+      - release-develop:
+          requires:
+            <<: *flow-release-requires
+          filters:
+            branches:
+              #ignore: /.*/
+              only: develop
+            tags:
+              <<: *flow-release-filter
