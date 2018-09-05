@@ -89,20 +89,20 @@ workflows:
           requires:
             - build
       - release:
-          requires: &flow-release-requires
+          requires:
             - test
           filters:
             branches:
               #ignore: /.*/
               only: master
-            tags: &flow-release-filter
+            tags:
               only: /^[vV]?\d+(\.\d+)*$/
       - release-develop:
           requires:
-            <<: *flow-release-requires
+            - test
           filters:
             branches:
               #ignore: /.*/
               only: develop
             tags:
-              <<: *flow-release-filter
+              only: /^[vV]?\d+(\.\d+)*$/
