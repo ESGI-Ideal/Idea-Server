@@ -81,16 +81,25 @@ jobs:
     steps:
       - *attach_workspace
       - run:
-          name: "Publish Release on GitHub"
-          command: ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -n "Auto release from ${CIRCLE_BRANCH}" -replace -draft TAG ${ARTIFACTS_ROOT}
+          name: "Check if branch & tag conditions are met, AND Publish release on GitHub"
+          #if [[ ! ($CIRCLE_BRANCH == "only-this-branch" && $CIRCLE_TAG == "only-this-tag") ]]
+          command: |
+            if [[ $CIRCLE_BRANCH == "master" ]]
+            then
+                ghr -t $GITHUB_TOKEN -u $CIRCLE_PROJECT_USERNAME -r $CIRCLE_PROJECT_REPONAME -c $CIRCLE_SHA1 -n "Auto release from $CIRCLE_BRANCH" -replace -draft $CIRCLE_TAG $ARTIFACTS_ROOT
+            fi
 
   release-develop:
     <<: *release_default_config
     steps:
       - *attach_workspace
       - run:
-          name: "Publish Release on GitHub"
-          command: ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -n "Auto release from ${CIRCLE_BRANCH}" -replace -prerelease -draft TAG ${ARTIFACTS_ROOT}
+          name: "Check if branch & tag conditions are met, AND Publish release on GitHub"
+          command: |
+            if [[ $CIRCLE_BRANCH == "develop" ]]
+            then
+                ghr -t $GITHUB_TOKEN -u $CIRCLE_PROJECT_USERNAME -r $CIRCLE_PROJECT_REPONAME -c $CIRCLE_SHA1 -n "Auto release from $CIRCLE_BRANCH" -replace -prerelease -draft $CIRCLE_TAG $ARTIFACTS_ROOT
+            fi
 
 workflows:
   version: 2
@@ -105,8 +114,8 @@ workflows:
             - test
           filters:
             branches:
-              #ignore: /.*/
-              only: master
+              ignore: /.*/
+              #only: master
             tags:
               only: /^[vV]?\d+(\.\d+)*$/
       - release-develop:
@@ -114,7 +123,7 @@ workflows:
             - test
           filters:
             branches:
-              #ignore: /.*/
-              only: develop
+              ignore: /.*/
+              #only: develop
             tags:
               only: /^[vV]?\d+(\.\d+)*$/
