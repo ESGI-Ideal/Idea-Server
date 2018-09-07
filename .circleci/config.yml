@@ -2,10 +2,12 @@ version: 2
 references:
     common:
         workspace_root: &workspace_root
-            ~/repo
+            /tmp/repo
+        artifacts_root: &artifacts_root
+            /tmp/artifacts
         attach_workspace: &attach_workspace
             attach_workspace:
-                at: *workspace_root
+                at: /tmp
         restore_cache: &restore_cache
             restore_cache:
                 keys:
@@ -23,11 +25,13 @@ references:
     env_jobs:
         default_config: &common_config
             working_directory: *workspace_root
+            environment:
+                MAVEN_OPTS: -Xmx3200m
+                WORKSPACE_ROOT: *workspace_root
+                ARTIFACTS_ROOT: *artifacts_root
         java_default_config: &java_default_config
             docker:
                 - image: circleci/openjdk:8-jdk
-            environment:
-                MAVEN_OPTS: -Xmx3200m
             <<: *common_config
         release_default_config: &release_default_config
             docker:
@@ -43,15 +47,18 @@ jobs:
       - run: mvn dependency:go-offline
       - run: mvn clean package -DskipTests -Dmaven.test.skip=true
       - *save_cache
+      - run:
+          name: "Prepare artifacts (for release)"
+          command: |
+            mkdir -p $ARTIFACTS_ROOT
+            mv target/*.jar $ARTIFACTS_ROOT/
       - persist_to_workspace:
-          root: *workspace_root
+          root: /tmp
           paths:
-            - .
-      - run: |
-            mkdir -p /tmp/artifact
-            cp target/*.jar /tmp/artifact
+            - repo
+            - artifacts
       - store_artifacts:
-          path: /tmp/artifact
+          path: *artifacts_root
           destination: artifacts/
 
   test:
@@ -70,7 +77,7 @@ jobs:
       - *attach_workspace
       - run:
           name: "Publish Release on GitHub"
-          command: ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -n "Auto release from ${CIRCLE_BRANCH}" -replace -draft TAG /tmp/artifact/
+          command: ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -n "Auto release from ${CIRCLE_BRANCH}" -replace -draft TAG ${ARTIFACTS_ROOT}
 
   release-develop:
     <<: *release_default_config
@@ -78,7 +85,7 @@ jobs:
       - *attach_workspace
       - run:
           name: "Publish Release on GitHub"
-          command: ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -n "Auto release from ${CIRCLE_BRANCH}" -replace -prerelease -draft TAG /tmp/artifact/
+          command: ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -n "Auto release from ${CIRCLE_BRANCH}" -replace -prerelease -draft TAG ${ARTIFACTS_ROOT}
 
 workflows:
   version: 2
