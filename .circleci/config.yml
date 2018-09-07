@@ -44,8 +44,10 @@ jobs:
     steps:
       - checkout
       - *restore_cache
-      - run: mvn dependency:go-offline
-      - run: mvn clean package -DskipTests -Dmaven.test.skip=true
+      #- run: mvn dependency:go-offline
+      - run:
+          name: "Compile application/project"
+          command: mvn clean package -DskipTests -Dmaven.test.skip=true
       - *save_cache
       - run:
           name: "Prepare artifacts (for release)"
@@ -66,8 +68,11 @@ jobs:
     steps:
       - *restore_cache
       - *attach_workspace
-      - run: mvn test
+      - run:
+          name: "Run Tests"
+          command: mvn test
       #- run: mvn integration-test
+      - *save_cache
       - store_test_results:
           path: target/surefire-reports
 
