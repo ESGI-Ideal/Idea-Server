@@ -53,7 +53,7 @@ jobs:
           name: "Prepare artifacts (for release)"
           command: |
             mkdir -p $ARTIFACTS_ROOT
-            mv target/*.jar $ARTIFACTS_ROOT/
+            mv --verbose target/*.jar $ARTIFACTS_ROOT/
       - persist_to_workspace:
           root: /tmp
           paths:
