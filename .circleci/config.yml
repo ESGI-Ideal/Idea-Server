@@ -73,6 +73,11 @@ jobs:
           command: mvn test
       #- run: mvn integration-test
       - *save_cache
+      - persist_to_workspace:
+            root: /tmp
+            paths:
+            - repo
+            - artifacts
       - store_test_results:
           path: target/surefire-reports
 
@@ -101,6 +106,30 @@ jobs:
                 ghr -t $GITHUB_TOKEN -u $CIRCLE_PROJECT_USERNAME -r $CIRCLE_PROJECT_REPONAME -c $CIRCLE_SHA1 -n "Auto release from $CIRCLE_BRANCH" -replace -prerelease -draft $CIRCLE_TAG $ARTIFACTS_ROOT
             fi
 
+  site:
+      <<: *java_default_config
+      steps:
+      #- *restore_cache
+      - *attach_workspace
+      - run:
+          name: "Git config for Debug"
+          #command: "{ git config --global --list ; git config --list ; } | sort | uniq"
+          command: git config --list
+      - run:
+          name: "Set Github Credentials"
+          command: |
+              git config --global user.email "circleci@circleci.com"
+              git config --global user.name "CircleCI"
+      - run:
+            name: "Generate site"
+            command: mvn site
+      - *save_cache
+      - store_artifacts:
+            path: /tmp/repo/target/site
+            destination: artifacts/
+
+  #site-develop:
+
 workflows:
   version: 2
   complete-flow:
@@ -127,3 +156,7 @@ workflows:
               #only: develop
             tags:
               only: /^[vV]?\d+(\.\d+)*$/
+      - site:
+          requires:
+            - test
+          #branches

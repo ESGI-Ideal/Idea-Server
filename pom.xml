@@ -495,6 +495,17 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-site-plugin</artifactId>
+                <version>3.7.1</version>
+                <configuration>
+                    <locales>fr</locales>
+                    <generateProjectInfo>true</generateProjectInfo>
+                    <generateReports>true</generateReports>
+                    <generateSitemap>true</generateSitemap>
+                </configuration>
+            </plugin>
         </plugins>
         <pluginManagement><!-- lock down plugins versions to avoid using Maven defaults -->
             <plugins>
@@ -531,4 +542,62 @@
             </plugins>
         </pluginManagement>
     </build>
+    <reporting>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-project-info-reports-plugin</artifactId>
+                <version>3.0.0</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>3.0.1</version>
+                <configuration>
+                    <!--<stylesheet>maven</stylesheet>-->
+                    <!-- conf copied from build config -->
+                    <detectJavaApiLink>true</detectJavaApiLink>
+                    <!--<detectLinks>true</detectLinks>-->
+                    <detectOfflineLinks>true</detectOfflineLinks>
+                    <includeDependencySources>false</includeDependencySources>
+                    <includeTransitiveDependencySources>false</includeTransitiveDependencySources>
+                    <linksource>true</linksource>
+                    <linksourcetab>4</linksourcetab>
+                    <validateLinks>true</validateLinks>
+                    <locale>fr_FR</locale>
+                    <doclint>all,-missing</doclint>
+                </configuration>
+                <reportSets>
+                    <reportSet>
+                        <reports>
+                            <report>javadoc-no-fork</report>
+                            <report>test-javadoc-no-fork</report>
+                        </reports>
+                    </reportSet>
+                </reportSets>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-changelog-plugin</artifactId>
+                <version>2.3</version>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>versions-maven-plugin</artifactId>
+                <version>2.7</version>
+                <reportSets>
+                    <reportSet>
+                        <reports>
+                            <report>dependency-updates-report</report>
+                            <report>plugin-updates-report</report>
+                            <report>property-updates-report</report>
+                        </reports>
+                    </reportSet>
+                </reportSets>
+            </plugin>
+        </plugins>
+        <!-- ci-management, dependencies, dependency-info, dependency-management, distribution-management, index,
+             issue-management, licenses, mailing-lists, modules, plugin-management, plugins, scm, summary, team -->
+        <!-- changelog, file-activity, dev-activity -->
+    </reporting>
 </project>
