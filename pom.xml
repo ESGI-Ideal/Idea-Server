@@ -449,6 +449,37 @@
                     </runArgs>-->
                 </configuration>
             </plugin>
+
+            <!-- ... -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>3.0.1</version>
+                <executions>
+                    <execution>
+                        <id>javadocs</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>jar</goal><!--jar-no-fork-->
+                            <goal>test-jar</goal><!--test-jar-no-fork-->
+                            <!--<goal>javadoc-no-fork</goal>
+                            <goal>test-javadoc-no-fork</goal>-->
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <detectJavaApiLink>true</detectJavaApiLink>
+                    <!--<detectLinks>true</detectLinks>-->
+                    <detectOfflineLinks>true</detectOfflineLinks>
+                    <includeDependencySources>false</includeDependencySources>
+                    <includeTransitiveDependencySources>false</includeTransitiveDependencySources>
+                    <linksource>true</linksource>
+                    <linksourcetab>4</linksourcetab>
+                    <validateLinks>true</validateLinks>
+                    <locale>fr_FR</locale>
+                    <doclint>all,-missing</doclint>
+                </configuration>
+            </plugin>
         </plugins>
         <pluginManagement><!-- lock down plugins versions to avoid using Maven defaults -->
             <plugins>
