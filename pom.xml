@@ -457,7 +457,7 @@
                 <version>3.0.1</version>
                 <executions>
                     <execution>
-                        <id>javadocs</id>
+                        <id>attach-javadocs</id>
                         <phase>package</phase>
                         <goals>
                             <goal>jar</goal><!--jar-no-fork-->
@@ -479,6 +479,21 @@
                     <locale>fr_FR</locale>
                     <doclint>all,-missing</doclint>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>3.0.1</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>jar-no-fork</goal>
+                            <goal>test-jar-no-fork</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
         <pluginManagement><!-- lock down plugins versions to avoid using Maven defaults -->
