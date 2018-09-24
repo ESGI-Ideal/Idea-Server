@@ -16,6 +16,35 @@
         <name>Ideal</name>
         <url>https://esgi-ideal.github.io/</url>
     </organization>
+    <developers>
+        <developer>
+            <id>TristanEduProjet</id>
+            <name>Tristan</name>
+            <organization>ESGI</organization>
+            <roles>
+                <role>Developer</role>
+                <role>Server</role>
+            </roles>
+        </developer>
+        <developer>
+            <id>LoghanRamassamy</id>
+            <name>Loghan</name>
+            <organization>ESGI</organization>
+            <roles>
+                <role>Developer</role>
+                <role>WebSite</role>
+            </roles>
+        </developer>
+        <developer>
+            <id>Kranysys</id>
+            <name>Nicolas</name>
+            <organization>ESGI</organization>
+            <roles>
+                <role>Developer</role>
+                <role>Mobile</role>
+            </roles>
+        </developer>
+    </developers>
 
     <scm>
         <url>https://github.com/ESGI-Ideal/Ideal-Server</url>
@@ -520,7 +549,7 @@
                         <configuration>
                             <server>github</server><!-- authentication for this server on .m2/settings.xml -->
                             <message>Building site for ${project.name} ${project.version}</message>
-                            <merge>false</merge>
+                            <merge>true</merge>
                             <noJekyll>true</noJekyll>
                             <!--<path></path>-->
                             <!--<settings></settings>-->
