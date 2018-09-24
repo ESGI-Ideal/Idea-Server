@@ -553,6 +553,7 @@
                             <noJekyll>true</noJekyll>
                             <!--<path></path>-->
                             <!--<settings></settings>-->
+                            <skip>true</skip><!-- TODO: fix error parameter/name nil -->
                         </configuration>
                     </execution>
                 </executions>
