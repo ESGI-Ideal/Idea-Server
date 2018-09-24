@@ -118,8 +118,8 @@ jobs:
       - run:
           name: "Set Github Credentials"
           command: |
-              git config --global user.email "circleci@circleci.com"
-              git config --global user.name "CircleCI"
+              git config user.email "circleci@circleci.com"
+              git config user.name "CircleCI"
       - run:
             name: "Generate site"
             command: mvn site
@@ -127,6 +127,10 @@ jobs:
       - store_artifacts:
             path: /tmp/repo/target/site
             destination: artifacts/
+      - run:
+            name: "Deploy site"
+            command: mvn site-deploy -s mvnci.settings.xml
+      - *save_cache
 
   #site-develop:
 
@@ -159,4 +163,6 @@ workflows:
       - site:
           requires:
             - test
-          #branches
+          #filters:
+          #  branches:
+          #    only: /^(master|develop)$/

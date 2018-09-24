@@ -495,6 +495,8 @@
                     </execution>
                 </executions>
             </plugin>
+
+            <!-- Deploy the web site -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-site-plugin</artifactId>
@@ -504,7 +506,27 @@
                     <generateProjectInfo>true</generateProjectInfo>
                     <generateReports>true</generateReports>
                     <generateSitemap>true</generateSitemap>
+                    <skipDeploy>true</skipDeploy>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>com.github.github</groupId>
+                <artifactId>site-maven-plugin</artifactId>
+                <version>0.12</version>
+                <executions>
+                    <execution>
+                        <goals><goal>site</goal></goals>
+                        <phase>site-deploy</phase>
+                        <configuration>
+                            <server>github</server><!-- authentication for this server on .m2/settings.xml -->
+                            <message>Building site for ${project.name} ${project.version}</message>
+                            <merge>false</merge>
+                            <noJekyll>true</noJekyll>
+                            <!--<path></path>-->
+                            <!--<settings></settings>-->
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
         <pluginManagement><!-- lock down plugins versions to avoid using Maven defaults -->
