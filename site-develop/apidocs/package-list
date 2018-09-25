@@ -1,0 +1,7 @@
+fr.esgi.ideal
+fr.esgi.ideal.api
+fr.esgi.ideal.api.database.codec
+fr.esgi.ideal.api.dto
+fr.esgi.ideal.api.image
+fr.esgi.ideal.internal
+io.vertx.core

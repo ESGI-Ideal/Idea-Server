@@ -1,0 +1,89 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="fr">
+<head>
+<title>Source code</title>
+<link rel="stylesheet" type="text/css" href="../../../../stylesheet.css" title="Style">
+</head>
+<body>
+<div class="sourceContainer">
+<pre><span class="sourceLineNo">001</span>package io.vertx.core;<a name="line.1"></a>
+<span class="sourceLineNo">002</span><a name="line.2"></a>
+<span class="sourceLineNo">003</span>import io.vertx.core.json.JsonObject;<a name="line.3"></a>
+<span class="sourceLineNo">004</span>import lombok.NonNull;<a name="line.4"></a>
+<span class="sourceLineNo">005</span><a name="line.5"></a>
+<span class="sourceLineNo">006</span>/**<a name="line.6"></a>
+<span class="sourceLineNo">007</span> * Simple public bridge to {@link VertxOptionsConverter}<a name="line.7"></a>
+<span class="sourceLineNo">008</span> */<a name="line.8"></a>
+<span class="sourceLineNo">009</span>public class VertxOptionsJson extends VertxOptionsConverter {<a name="line.9"></a>
+<span class="sourceLineNo">010</span>    public static void fromJson(@NonNull final JsonObject json, @NonNull final VertxOptions obj) {<a name="line.10"></a>
+<span class="sourceLineNo">011</span>        VertxOptionsConverter.fromJson(json, obj);<a name="line.11"></a>
+<span class="sourceLineNo">012</span>    }<a name="line.12"></a>
+<span class="sourceLineNo">013</span><a name="line.13"></a>
+<span class="sourceLineNo">014</span>    public static void toJson(@NonNull final VertxOptions obj, @NonNull final JsonObject json) {<a name="line.14"></a>
+<span class="sourceLineNo">015</span>        VertxOptionsConverter.toJson(obj, json);<a name="line.15"></a>
+<span class="sourceLineNo">016</span>    }<a name="line.16"></a>
+<span class="sourceLineNo">017</span>}<a name="line.17"></a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</pre>
+</div>
+</body>
+</html>

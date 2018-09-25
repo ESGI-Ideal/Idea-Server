@@ -1,0 +1,129 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="fr">
+<head>
+<title>Source code</title>
+<link rel="stylesheet" type="text/css" href="../../../../stylesheet.css" title="Style">
+</head>
+<body>
+<div class="sourceContainer">
+<pre><span class="sourceLineNo">001</span>package fr.esgi.ideal;<a name="line.1"></a>
+<span class="sourceLineNo">002</span><a name="line.2"></a>
+<span class="sourceLineNo">003</span>import io.vertx.core.AbstractVerticle;<a name="line.3"></a>
+<span class="sourceLineNo">004</span>import io.vertx.core.CompositeFuture;<a name="line.4"></a>
+<span class="sourceLineNo">005</span>import io.vertx.core.DeploymentOptions;<a name="line.5"></a>
+<span class="sourceLineNo">006</span>import io.vertx.core.DeploymentOptionsJson;<a name="line.6"></a>
+<span class="sourceLineNo">007</span>import io.vertx.core.Future;<a name="line.7"></a>
+<span class="sourceLineNo">008</span>import io.vertx.core.json.JsonObject;<a name="line.8"></a>
+<span class="sourceLineNo">009</span>import lombok.NonNull;<a name="line.9"></a>
+<span class="sourceLineNo">010</span>import lombok.extern.slf4j.Slf4j;<a name="line.10"></a>
+<span class="sourceLineNo">011</span><a name="line.11"></a>
+<span class="sourceLineNo">012</span>import java.lang.management.ManagementFactory;<a name="line.12"></a>
+<span class="sourceLineNo">013</span>import java.util.stream.Collectors;<a name="line.13"></a>
+<span class="sourceLineNo">014</span><a name="line.14"></a>
+<span class="sourceLineNo">015</span>@Slf4j<a name="line.15"></a>
+<span class="sourceLineNo">016</span>public final class AppStartVerticle extends AbstractVerticle {<a name="line.16"></a>
+<span class="sourceLineNo">017</span>    @Override<a name="line.17"></a>
+<span class="sourceLineNo">018</span>    public void start(final Future&lt;Void&gt; startFuture) {<a name="line.18"></a>
+<span class="sourceLineNo">019</span>        log.trace("process = {}", ManagementFactory.getRuntimeMXBean().getName());<a name="line.19"></a>
+<span class="sourceLineNo">020</span>        log.debug("config() = {}", this.config().encodePrettily());<a name="line.20"></a>
+<span class="sourceLineNo">021</span>        CompositeFuture.join(<a name="line.21"></a>
+<span class="sourceLineNo">022</span>            this.config().getJsonObject("verticles", new JsonObject()).stream()<a name="line.22"></a>
+<span class="sourceLineNo">023</span>                .peek(e -&gt; log.debug("found from config verticle {}", e.getKey()))<a name="line.23"></a>
+<span class="sourceLineNo">024</span>                .map(e -&gt; this.deploy(e.getKey(), DeploymentOptionsJson.fromJson(((JsonObject) e.getValue()).getJsonObject("deploymentOptions", new JsonObject()), new DeploymentOptions())))<a name="line.24"></a>
+<span class="sourceLineNo">025</span>                .collect(Collectors.toList())<a name="line.25"></a>
+<span class="sourceLineNo">026</span>        ).setHandler(ar -&gt; {<a name="line.26"></a>
+<span class="sourceLineNo">027</span>            if(ar.succeeded())<a name="line.27"></a>
+<span class="sourceLineNo">028</span>                startFuture.complete();<a name="line.28"></a>
+<span class="sourceLineNo">029</span>            else<a name="line.29"></a>
+<span class="sourceLineNo">030</span>                startFuture.fail(ar.cause());<a name="line.30"></a>
+<span class="sourceLineNo">031</span>        });<a name="line.31"></a>
+<span class="sourceLineNo">032</span>        log.info("Module(s) and/or verticle(s) deployment... DONE");<a name="line.32"></a>
+<span class="sourceLineNo">033</span>    }<a name="line.33"></a>
+<span class="sourceLineNo">034</span><a name="line.34"></a>
+<span class="sourceLineNo">035</span>    @Override<a name="line.35"></a>
+<span class="sourceLineNo">036</span>    public void stop(final Future&lt;Void&gt; stopFuture) {<a name="line.36"></a>
+<span class="sourceLineNo">037</span>        log.debug("Undeploying verticle(s)... DONE");<a name="line.37"></a>
+<span class="sourceLineNo">038</span>        this.vertx.close();<a name="line.38"></a>
+<span class="sourceLineNo">039</span>        log.info("Application stopped successfully.");<a name="line.39"></a>
+<span class="sourceLineNo">040</span>        stopFuture.complete();<a name="line.40"></a>
+<span class="sourceLineNo">041</span>    }<a name="line.41"></a>
+<span class="sourceLineNo">042</span><a name="line.42"></a>
+<span class="sourceLineNo">043</span>    private Future&lt;Void&gt; deploy(@NonNull final String clazz, @NonNull final DeploymentOptions options) {<a name="line.43"></a>
+<span class="sourceLineNo">044</span>        final Future&lt;Void&gt; future = Future.future();<a name="line.44"></a>
+<span class="sourceLineNo">045</span>        log.trace("while deploy {} with {}", clazz, options.toJson().encodePrettily());<a name="line.45"></a>
+<span class="sourceLineNo">046</span>        this.vertx.deployVerticle(clazz, options, handler -&gt; {<a name="line.46"></a>
+<span class="sourceLineNo">047</span>            if(handler.succeeded()) {<a name="line.47"></a>
+<span class="sourceLineNo">048</span>                log.info("{} started successfully (deployment identifier: {})", clazz, handler.result());<a name="line.48"></a>
+<span class="sourceLineNo">049</span>                future.complete();<a name="line.49"></a>
+<span class="sourceLineNo">050</span>            } else {<a name="line.50"></a>
+<span class="sourceLineNo">051</span>                log.error(clazz+" deployment failed due to: ", handler.cause());<a name="line.51"></a>
+<span class="sourceLineNo">052</span>                future.fail(handler.cause());<a name="line.52"></a>
+<span class="sourceLineNo">053</span>            }<a name="line.53"></a>
+<span class="sourceLineNo">054</span>        });<a name="line.54"></a>
+<span class="sourceLineNo">055</span>        return future;<a name="line.55"></a>
+<span class="sourceLineNo">056</span>    }<a name="line.56"></a>
+<span class="sourceLineNo">057</span>}<a name="line.57"></a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</pre>
+</div>
+</body>
+</html>
