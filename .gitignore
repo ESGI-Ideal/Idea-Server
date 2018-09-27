@@ -7,3 +7,4 @@ Thumbs.db
 [Dd]esktop.ini
 
 /target/
+/node_modules/
