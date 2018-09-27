@@ -252,6 +252,14 @@
             <resource>
                 <directory>src/main/resources</directory>
                 <filtering>true</filtering>
+                <excludes>
+                    <exclude>*.yml</exclude>
+                    <exclude>*.yaml</exclude>
+                </excludes>
+            </resource>
+            <resource>
+                <directory>${project.build.directory}/openapi</directory>
+                <filtering>false</filtering>
             </resource>
         </resources>
         <testResources>
@@ -441,6 +449,53 @@
                 </configuration>
             </plugin>
 
+            <!-- // generate DB binding // -->
+            <plugin>
+                <groupId>com.github.eirslett</groupId>
+                <artifactId>frontend-maven-plugin</artifactId>
+                <version>1.6</version>
+                <executions>
+                    <execution>
+                        <id>install-node-npm</id>
+                        <phase>generate-resources</phase>
+                        <goals><goal>install-node-and-npm</goal></goals>
+                    </execution>
+                    <execution>
+                        <id>npm-install</id>
+                        <phase>generate-resources</phase>
+                        <goals><goal>npm</goal></goals>
+                        <configuration><arguments>install</arguments></configuration>
+                    </execution>
+                    <execution>
+                        <id>npm-run-mkdir</id>
+                        <phase>generate-resources</phase>
+                        <goals><goal>npm</goal></goals>
+                        <configuration><arguments>run mkdir</arguments></configuration>
+                    </execution>
+                    <execution>
+                        <id>npm-run-bundle</id>
+                        <phase>generate-resources</phase>
+                        <goals><goal>npm</goal></goals>
+                        <configuration><arguments>run merge</arguments></configuration>
+                    </execution>
+                </executions>
+                <configuration>
+                    <nodeVersion>v10.11.0</nodeVersion><!--8.12.0-->
+                    <npmVersion>6.4.1</npmVersion>
+                    <!--<workingDirectory>src/main/frontend</workingDirectory><!- -package.json, node_modules ...-->
+                    <installDirectory>${project.build.directory}</installDirectory>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-clean-plugin</artifactId>
+                <version>3.1.0</version>
+                <configuration>
+                    <!--<filesets><fileset>${project.basedir}/node_modules</fileset></filesets>-->
+                    <followSymLinks>false</followSymLinks>
+                </configuration>
+            </plugin>
+
             <!-- // Build & Executable Jar // -->
             <plugin>
                 <groupId>io.fabric8</groupId>
@@ -561,11 +616,6 @@
         </plugins>
         <pluginManagement><!-- lock down plugins versions to avoid using Maven defaults -->
             <plugins>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-clean-plugin</artifactId>
-                    <version>3.1.0</version>
-                </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-resources-plugin</artifactId>

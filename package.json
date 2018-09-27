@@ -1,0 +1,38 @@
+{
+  "name": "ideal-server",
+  "version": "1.0.0-beta",
+  "description": "Ideal server (part of maven build)",
+  "scripts": {
+    "bundle": "swagger-cli bundle -f 4 -t yaml -o target/openapi/openapi_bundle.yaml src/main/resources/openapi.yaml",
+    "merge_glob": "merge-yaml -i \"src/main/resources/openapi?(-*).y?(a)ml\" -o target/openapi/openapi_bundle.yaml",
+    "merge": "merge-yaml -i src/main/resources/openapi.yaml src/main/resources/openapi-*.yml -o target/openapi/openapi_bundle.yaml",
+    "mkdir": "mkdirp target/openapi/"
+  },
+  "engines": {
+    "node": ">=8.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ESGI-Ideal/Ideal-Server.git"
+  },
+  "keywords": [
+    "ideal",
+    "server",
+    "generate",
+    "maven",
+    "openapi",
+    "documentation"
+  ],
+  "author": "TristanEduProjet",
+  "private": true,
+  "bugs": {
+    "url": "https://github.com/ESGI-Ideal/Ideal-Server/issues"
+  },
+  "homepage": "https://github.com/ESGI-Ideal/Ideal-Server#readme",
+  "readme": "https://esgi-ideal.github.io/Ideal-Server",
+  "devDependencies": {
+    "merge-yaml-cli": "^1.1.2",
+    "mkdirp": "^0.5.1",
+    "swagger-cli": "^2.1.1"
+  }
+}
