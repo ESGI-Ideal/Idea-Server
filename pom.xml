@@ -461,8 +461,19 @@
                         <goals><goal>install-node-and-npm</goal></goals>
                     </execution>
                     <execution>
+                        <id>install-node-npm-site</id>
+                        <phase>pre-site</phase>
+                        <goals><goal>install-node-and-npm</goal></goals>
+                    </execution>
+                    <execution>
                         <id>npm-install</id>
                         <phase>generate-resources</phase>
+                        <goals><goal>npm</goal></goals>
+                        <configuration><arguments>install</arguments></configuration>
+                    </execution>
+                    <execution>
+                        <id>npm-install-site</id>
+                        <phase>pre-site</phase>
                         <goals><goal>npm</goal></goals>
                         <configuration><arguments>install</arguments></configuration>
                     </execution>
@@ -473,10 +484,28 @@
                         <configuration><arguments>run mkdir</arguments></configuration>
                     </execution>
                     <execution>
+                        <id>npm-run-site-mkdir</id>
+                        <phase>pre-site</phase>
+                        <goals><goal>npm</goal></goals>
+                        <configuration><arguments>run mkdir-site</arguments></configuration>
+                    </execution>
+                    <execution>
                         <id>npm-run-bundle</id>
                         <phase>generate-resources</phase>
                         <goals><goal>npm</goal></goals>
                         <configuration><arguments>run merge</arguments></configuration>
+                    </execution>
+                    <execution>
+                        <id>npm-run-site-bundle</id>
+                        <phase>pre-site</phase>
+                        <goals><goal>npm</goal></goals>
+                        <configuration><arguments>run merge-site</arguments></configuration>
+                    </execution>
+                    <execution>
+                        <id>npm-run-site-copy</id>
+                        <phase>pre-site</phase>
+                        <goals><goal>npm</goal></goals>
+                        <configuration><arguments>run copy-site</arguments></configuration>
                     </execution>
                 </executions>
                 <configuration>
