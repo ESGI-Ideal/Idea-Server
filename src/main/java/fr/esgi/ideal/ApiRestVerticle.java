@@ -114,9 +114,7 @@ public class ApiRestVerticle extends AbstractVerticle {
     private Future<Router> start_getOpenApiCotroller() {
         final Future<Router> future = Future.future();
         try {
-            OpenAPI3RouterFactory.create(vertx, FSIO.getResourcesYamlsMergedAsExternal(
-                    "openapi.yaml", "openapi-ads.yml", "openapi-article.yml", "openapi-partner.yml", "openapi-user.yml", "openapi-img.yml"
-            ).toString(), ar -> future.handle(ar.map(routerFactory -> {
+            OpenAPI3RouterFactory.create(vertx, FSIO.getResourceAsExternal("openapi_bundle.yaml").toString(), ar -> future.handle(ar.map(routerFactory -> {
                 {
                     // Create and mount options to router factory
                     final RouterFactoryOptions options = new RouterFactoryOptions()

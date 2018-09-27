@@ -1,0 +1,168 @@
+version: 2
+references:
+    common:
+        workspace_root: &workspace_root
+            /tmp/repo
+        artifacts_root: &artifacts_root
+            /tmp/artifacts
+        attach_workspace: &attach_workspace
+            attach_workspace:
+                at: /tmp
+        restore_cache: &restore_cache
+            restore_cache:
+                keys:
+                    - source-v1-{{ .Branch }}-{{ .Revision }}
+                    - source-v1-{{ .Branch }}-
+                    - source-v1-
+                    #- m2-{{ checksum "pom.xml" }}
+                    #- m2-
+        save_cache: &save_cache
+            save_cache:
+                paths:
+                    - ~/.m2
+                key: source-v1-{{ .Branch }}-{{ .Revision }}
+
+    env_jobs:
+        default_config: &common_config
+            working_directory: *workspace_root
+            environment:
+                MAVEN_OPTS: -Xmx3200m
+                WORKSPACE_ROOT: *workspace_root
+                ARTIFACTS_ROOT: *artifacts_root
+        java_default_config: &java_default_config
+            docker:
+                - image: circleci/openjdk:8-jdk
+            <<: *common_config
+        release_default_config: &release_default_config
+            docker:
+                - image: cibuilds/github:0.10
+            <<: *common_config
+
+jobs:
+  build:
+    <<: *java_default_config
+    steps:
+      - checkout
+      - *restore_cache
+      #- run: mvn dependency:go-offline
+      - run:
+          name: "Compile application/project"
+          command: mvn clean package -DskipTests -Dmaven.test.skip=true
+      - *save_cache
+      - run:
+          name: "Prepare artifacts (for release)"
+          command: |
+            mkdir -p $ARTIFACTS_ROOT
+            mv --verbose target/*.jar $ARTIFACTS_ROOT/
+      - persist_to_workspace:
+          root: /tmp
+          paths:
+            - repo
+            - artifacts
+      - store_artifacts:
+          path: *artifacts_root
+          destination: artifacts/
+
+  test:
+    <<: *java_default_config
+    steps:
+      - *restore_cache
+      - *attach_workspace
+      - run:
+          name: "Run Tests"
+          command: mvn test
+      #- run: mvn integration-test
+      - *save_cache
+      - persist_to_workspace:
+            root: /tmp
+            paths:
+            - repo
+            - artifacts
+      - store_test_results:
+          path: target/surefire-reports
+
+  release:
+    <<: *release_default_config
+    steps:
+      - *attach_workspace
+      - run:
+          name: "Check if branch & tag conditions are met, AND Publish release on GitHub"
+          #if [[ ! ($CIRCLE_BRANCH == "only-this-branch" && $CIRCLE_TAG == "only-this-tag") ]]
+          command: |
+            if [[ $CIRCLE_BRANCH == "master" ]]
+            then
+                ghr -t $GITHUB_TOKEN -u $CIRCLE_PROJECT_USERNAME -r $CIRCLE_PROJECT_REPONAME -c $CIRCLE_SHA1 -n "Auto release from $CIRCLE_BRANCH" -replace -draft $CIRCLE_TAG $ARTIFACTS_ROOT
+            fi
+
+  release-develop:
+    <<: *release_default_config
+    steps:
+      - *attach_workspace
+      - run:
+          name: "Check if branch & tag conditions are met, AND Publish release on GitHub"
+          command: |
+            if [[ $CIRCLE_BRANCH == "develop" ]]
+            then
+                ghr -t $GITHUB_TOKEN -u $CIRCLE_PROJECT_USERNAME -r $CIRCLE_PROJECT_REPONAME -c $CIRCLE_SHA1 -n "Auto release from $CIRCLE_BRANCH" -replace -prerelease -draft $CIRCLE_TAG $ARTIFACTS_ROOT
+            fi
+
+  site:
+      <<: *java_default_config
+      steps:
+      #- *restore_cache
+      - *attach_workspace
+      - run:
+          name: "Git config for Debug"
+          #command: "{ git config --global --list ; git config --list ; } | sort | uniq"
+          command: git config --list
+      - run:
+          name: "Set Github Credentials"
+          command: |
+              git config user.email "circleci@circleci.com"
+              git config user.name "CircleCI"
+      - run:
+            name: "Generate site"
+            command: mvn site
+      - *save_cache
+      - store_artifacts:
+            path: /tmp/repo/target/site
+            destination: artifacts/
+      #- run:
+      #      name: "Deploy site"
+      #      command: mvn site-deploy -s mvnci.settings.xml
+      #- *save_cache
+
+  #site-develop:
+
+workflows:
+  version: 2
+  complete-flow:
+    jobs:
+      - build
+      - test:
+          requires:
+            - build
+      - release:
+          requires:
+            - test
+          filters:
+            branches:
+              ignore: /.*/
+              #only: master
+            tags:
+              only: /^[vV]?\d+(\.\d+)*$/
+      - release-develop:
+          requires:
+            - test
+          filters:
+            branches:
+              ignore: /.*/
+              #only: develop
+            tags:
+              only: /^[vV]?\d+(\.\d+)*$/
+      - site:
+          requires:
+            - test
+          filters:
+            branches:
+              only: /^(master|develop)$/

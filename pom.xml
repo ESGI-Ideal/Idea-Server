@@ -16,6 +16,35 @@
         <name>Ideal</name>
         <url>https://esgi-ideal.github.io/</url>
     </organization>
+    <developers>
+        <developer>
+            <id>TristanEduProjet</id>
+            <name>Tristan</name>
+            <organization>ESGI</organization>
+            <roles>
+                <role>Developer</role>
+                <role>Server</role>
+            </roles>
+        </developer>
+        <developer>
+            <id>LoghanRamassamy</id>
+            <name>Loghan</name>
+            <organization>ESGI</organization>
+            <roles>
+                <role>Developer</role>
+                <role>WebSite</role>
+            </roles>
+        </developer>
+        <developer>
+            <id>Kranysys</id>
+            <name>Nicolas</name>
+            <organization>ESGI</organization>
+            <roles>
+                <role>Developer</role>
+                <role>Mobile</role>
+            </roles>
+        </developer>
+    </developers>
 
     <scm>
         <url>https://github.com/ESGI-Ideal/Ideal-Server</url>
@@ -223,6 +252,14 @@
             <resource>
                 <directory>src/main/resources</directory>
                 <filtering>true</filtering>
+                <excludes>
+                    <exclude>*.yml</exclude>
+                    <exclude>*.yaml</exclude>
+                </excludes>
+            </resource>
+            <resource>
+                <directory>${project.build.directory}/openapi</directory>
+                <filtering>false</filtering>
             </resource>
         </resources>
         <testResources>
@@ -389,6 +426,7 @@
                 </executions>
             </plugin>-->
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-assembly-plugin</artifactId>
                 <version>3.1.0</version>
                 <configuration>
@@ -408,6 +446,82 @@
                             <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
                         </manifest>
                     </archive>
+                </configuration>
+            </plugin>
+
+            <!-- // generate DB binding // -->
+            <plugin>
+                <groupId>com.github.eirslett</groupId>
+                <artifactId>frontend-maven-plugin</artifactId>
+                <version>1.6</version>
+                <executions>
+                    <execution>
+                        <id>install-node-npm</id>
+                        <phase>generate-resources</phase>
+                        <goals><goal>install-node-and-npm</goal></goals>
+                    </execution>
+                    <execution>
+                        <id>install-node-npm-site</id>
+                        <phase>pre-site</phase>
+                        <goals><goal>install-node-and-npm</goal></goals>
+                    </execution>
+                    <execution>
+                        <id>npm-install</id>
+                        <phase>generate-resources</phase>
+                        <goals><goal>npm</goal></goals>
+                        <configuration><arguments>install</arguments></configuration>
+                    </execution>
+                    <execution>
+                        <id>npm-install-site</id>
+                        <phase>pre-site</phase>
+                        <goals><goal>npm</goal></goals>
+                        <configuration><arguments>install</arguments></configuration>
+                    </execution>
+                    <execution>
+                        <id>npm-run-mkdir</id>
+                        <phase>generate-resources</phase>
+                        <goals><goal>npm</goal></goals>
+                        <configuration><arguments>run mkdir</arguments></configuration>
+                    </execution>
+                    <execution>
+                        <id>npm-run-site-mkdir</id>
+                        <phase>pre-site</phase>
+                        <goals><goal>npm</goal></goals>
+                        <configuration><arguments>run mkdir-site</arguments></configuration>
+                    </execution>
+                    <execution>
+                        <id>npm-run-bundle</id>
+                        <phase>generate-resources</phase>
+                        <goals><goal>npm</goal></goals>
+                        <configuration><arguments>run merge</arguments></configuration>
+                    </execution>
+                    <execution>
+                        <id>npm-run-site-bundle</id>
+                        <phase>pre-site</phase>
+                        <goals><goal>npm</goal></goals>
+                        <configuration><arguments>run merge-site</arguments></configuration>
+                    </execution>
+                    <execution>
+                        <id>npm-run-site-copy</id>
+                        <phase>pre-site</phase>
+                        <goals><goal>npm</goal></goals>
+                        <configuration><arguments>run copy-site</arguments></configuration>
+                    </execution>
+                </executions>
+                <configuration>
+                    <nodeVersion>v10.11.0</nodeVersion><!--8.12.0-->
+                    <npmVersion>6.4.1</npmVersion>
+                    <!--<workingDirectory>src/main/frontend</workingDirectory><!- -package.json, node_modules ...-->
+                    <installDirectory>${project.build.directory}</installDirectory>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-clean-plugin</artifactId>
+                <version>3.1.0</version>
+                <configuration>
+                    <!--<filesets><fileset>${project.basedir}/node_modules</fileset></filesets>-->
+                    <followSymLinks>false</followSymLinks>
                 </configuration>
             </plugin>
 
@@ -448,6 +562,173 @@
                     </runArgs>-->
                 </configuration>
             </plugin>
+
+            <!-- ... -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>3.0.1</version>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>jar</goal><!--jar-no-fork-->
+                            <goal>test-jar</goal><!--test-jar-no-fork-->
+                            <!--<goal>javadoc-no-fork</goal>
+                            <goal>test-javadoc-no-fork</goal>-->
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <detectJavaApiLink>true</detectJavaApiLink>
+                    <!--<detectLinks>true</detectLinks>-->
+                    <detectOfflineLinks>true</detectOfflineLinks>
+                    <includeDependencySources>false</includeDependencySources>
+                    <includeTransitiveDependencySources>false</includeTransitiveDependencySources>
+                    <linksource>true</linksource>
+                    <linksourcetab>4</linksourcetab>
+                    <validateLinks>true</validateLinks>
+                    <locale>fr_FR</locale>
+                    <doclint>all,-missing</doclint>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>3.0.1</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>jar-no-fork</goal>
+                            <goal>test-jar-no-fork</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Deploy the web site -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-site-plugin</artifactId>
+                <version>3.7.1</version>
+                <configuration>
+                    <locales>fr</locales>
+                    <generateProjectInfo>true</generateProjectInfo>
+                    <generateReports>true</generateReports>
+                    <generateSitemap>true</generateSitemap>
+                    <skipDeploy>true</skipDeploy>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>com.github.github</groupId>
+                <artifactId>site-maven-plugin</artifactId>
+                <version>0.12</version>
+                <executions>
+                    <execution>
+                        <goals><goal>site</goal></goals>
+                        <phase>site-deploy</phase>
+                        <configuration>
+                            <server>github</server><!-- authentication for this server on .m2/settings.xml -->
+                            <message>Building site for ${project.name} ${project.version}</message>
+                            <merge>true</merge>
+                            <noJekyll>true</noJekyll>
+                            <!--<path></path>-->
+                            <!--<settings></settings>-->
+                            <skip>true</skip><!-- TODO: fix error parameter/name nil -->
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
+        <pluginManagement><!-- lock down plugins versions to avoid using Maven defaults -->
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-resources-plugin</artifactId>
+                    <version>3.1.0</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.8.0</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>2.22.0</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-dependency-plugin</artifactId>
+                    <version>3.1.1</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-help-plugin</artifactId>
+                    <version>3.1.0</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
     </build>
+    <reporting>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-project-info-reports-plugin</artifactId>
+                <version>3.0.0</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>3.0.1</version>
+                <configuration>
+                    <!--<stylesheet>maven</stylesheet>-->
+                    <!-- conf copied from build config -->
+                    <detectJavaApiLink>true</detectJavaApiLink>
+                    <!--<detectLinks>true</detectLinks>-->
+                    <detectOfflineLinks>true</detectOfflineLinks>
+                    <includeDependencySources>false</includeDependencySources>
+                    <includeTransitiveDependencySources>false</includeTransitiveDependencySources>
+                    <linksource>true</linksource>
+                    <linksourcetab>4</linksourcetab>
+                    <validateLinks>true</validateLinks>
+                    <locale>fr_FR</locale>
+                    <doclint>all,-missing</doclint>
+                </configuration>
+                <reportSets>
+                    <reportSet>
+                        <reports>
+                            <report>javadoc-no-fork</report>
+                            <report>test-javadoc-no-fork</report>
+                        </reports>
+                    </reportSet>
+                </reportSets>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-changelog-plugin</artifactId>
+                <version>2.3</version>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>versions-maven-plugin</artifactId>
+                <version>2.7</version>
+                <reportSets>
+                    <reportSet>
+                        <reports>
+                            <report>dependency-updates-report</report>
+                            <report>plugin-updates-report</report>
+                            <report>property-updates-report</report>
+                        </reports>
+                    </reportSet>
+                </reportSets>
+            </plugin>
+        </plugins>
+        <!-- ci-management, dependencies, dependency-info, dependency-management, distribution-management, index,
+             issue-management, licenses, mailing-lists, modules, plugin-management, plugins, scm, summary, team -->
+        <!-- changelog, file-activity, dev-activity -->
+    </reporting>
 </project>
