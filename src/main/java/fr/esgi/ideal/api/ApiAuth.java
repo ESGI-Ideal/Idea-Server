@@ -14,7 +14,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import java.nio.charset.StandardCharsets;
-import java.time.Instant;
+import java.time.OffsetDateTime;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Date;
@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 public class ApiAuth {
     private final EventBus eventBus;
-    private final User tmp = new User(0L, "mail@mail.com", Date.from(Instant.EPOCH), null, false);
+    private final User tmp = new User(0L, "mail@mail.com", OffsetDateTime.now(), null, false);
 
     @Getter
     private final AuthProvider provider = new AuthProvider() {

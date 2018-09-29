@@ -12,7 +12,7 @@ import lombok.Builder.Default;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-import java.util.Date;
+import java.time.OffsetDateTime;
 
 @Data
 @AllArgsConstructor
@@ -33,7 +33,7 @@ public class User extends AbstractUser {
     /**
      * user's date inscription
      */
-    private Date inscription;
+    private OffsetDateTime inscription;
 
     /**
      * infos for the image

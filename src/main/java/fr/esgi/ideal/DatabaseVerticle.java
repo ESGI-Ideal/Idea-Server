@@ -184,14 +184,14 @@ public class DatabaseVerticle extends AbstractVerticle {
                 .map(v -> (Function<SelectConditionStep<? extends Record>, SelectLimitStep<? extends Record>>)
                           (s -> s.orderBy(ARTICLES_DATA.field(v).sort(jsobj.getBoolean("order", false) ? ASC : DESC))))
                 .orElse(s -> s)
-                .apply(select.from(ARTICLES_DATA)
+                .apply(select.from(ARTICLES)
                              .where(jsobj.getJsonArray("keywords").stream().map(String.class::cast)
-                                                                                .map(ARTICLES_DATA.NAME.trim().lower()::like)
+                                                                                .map(ARTICLES.NAME.trim().lower()::like)
                                                                                 .map(Condition.class::cast) //seem to be explicit for reduce
                                                                                 .reduce(Condition::or).orElse(null)))
                 .limit(jsobj.getInteger("offset", 20), jsobj.getInteger("limit", 20));
         this.vertx.eventBus().<JsonObject>consumer(DB_ARTICLE_SEARCH,
-                                                   msg -> execSqlCodec(msg, ArticlesListMessageCodec.class, dsl -> sqlSearch.apply(msg.body(), dsl.select(ARTICLES_DATA.fields())).fetchInto(Articles.class)));
+                                                   msg -> execSqlCodec(msg, ArticlesListMessageCodec.class, dsl -> sqlSearch.apply(msg.body(), dsl.select(ARTICLES.fields())).fetchInto(Articles.class)));
         this.vertx.eventBus().<JsonObject>consumer(DB_ARTICLE_SEARCH_TOTAL,
                                                    msg -> execSqlRaw(msg, dsl -> sqlSearch.apply(msg.body(), dsl.selectCount()).fetchOne(0, int.class)));
         /* Partners */

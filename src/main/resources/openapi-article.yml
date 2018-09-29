@@ -95,19 +95,19 @@ components:
           type: integer
           format: int64
           nullable: true
-        #created:
-        #  type: string
-        #  format: date-time
-        #updated:
-        #  type: string
-        #  format: date-time
+        created:
+          type: string
+          format: date-time
+        updated:
+          type: string
+          format: date-time
         description:
           type: string
         price:
           type: number
           format: float
-        #customerRating:
-        #  type: number
-        #  format: int32
+        customerRating:
+          type: number
+          format: int32
       xml:
         name: ArticleData

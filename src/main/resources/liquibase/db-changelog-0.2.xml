@@ -13,4 +13,11 @@
                                  referencedTableName="users" referencedColumnNames="id"
                                  constraintName="fk_articles_createBy_users_id" />
     </changeSet>
+
+    <!--<changeSet id="07-adapt-timestamp-mapping" author="Tristan">
+        <comment>Adapt the timestamp mapping with API</comment>
+        <modifyDataType tableName="articles_data" columnName="created" newDataType="TIMESTAMP WITH TIME ZONE" />
+        <modifyDataType tableName="articles_data" columnName="updated" newDataType="TIMESTAMP WITH TIME ZONE" />
+        <modifyDataType tableName="users" columnName="created" newDataType="TIMESTAMP WITH TIME ZONE" />
+    </changeSet>-->
 </databaseChangeLog>

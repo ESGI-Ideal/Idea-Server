@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 
-import java.util.Date;
+import java.time.OffsetDateTime;
 
 @Data
 @AllArgsConstructor
@@ -23,7 +23,7 @@ public class Article {
     /**
      * Date created & updated
      */
-    private Date created, updated;
+    private OffsetDateTime created, updated; // RFC3339/ISO8601
 
     /**
      * Description of article

@@ -11,10 +11,13 @@ import fr.esgi.ideal.dao.tables.pojos.Images;
 import fr.esgi.ideal.dao.tables.pojos.Partners;
 import fr.esgi.ideal.dao.tables.pojos.Users;
 import io.vertx.core.json.JsonObject;
+import lombok.NonNull;
 import lombok.experimental.UtilityClass;
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.Optional;
 
@@ -27,13 +30,11 @@ public class DbConverter {
         if(db != null) {
             final User user = User.builder()
                     .id(db.getId())
-                    .inscription(null)
+                    .inscription(db.getCreated())
                     .isAdmin(db.getAdmin())
                     .mail(db.getMail())
                     .img(db.getImage()) //TODO
                     .build();
-            /*if(db.getCreated() != null)
-                user.setInscription(TODO);*/
             return user;
         } else
             return null;
@@ -43,13 +44,11 @@ public class DbConverter {
         if(db != null) {
             final User user = User.builder()
                     .id(db.getLong("id"))
-                    .inscription(null)
+                    .inscription((OffsetDateTime)db.getValue("created"))
                     .isAdmin(db.getBoolean("isAdmin", false))
                     .mail(db.getString("email"))
                     .img(db.getLong("img")) //TODO
                     .build();
-            /*if(db.getCreated() != null)
-                user.setInscription(TODO);*/
             return user;
         } else
             return null;
@@ -57,7 +56,7 @@ public class DbConverter {
 
     public static Users toDB(final User api) {
         if(api != null) {
-            final Users user = new Users(api.getId(), api.getImg(), api.getMail(), convert(api.getInscription()), api.isAdmin());
+            final Users user = new Users(api.getId(), api.getImg(), api.getMail(), api.getInscription(), api.isAdmin());
             return user;
         } else
             return null;
@@ -68,17 +67,13 @@ public class DbConverter {
             final Article article = Article.builder()
                     .id(db.getId())
                     .name(db.getName())
-                    .created(null)
-                    .updated(null)
+                    .created(db.getCreated())
+                    .updated(db.getUpdated())
                     .description(db.getDescription())
                     .price(Optional.ofNullable(db.getPrice()).map(Double::floatValue).orElse(null))
                     .customerRating(Math.toIntExact(db.getRate()))
                     .img(db.getImage()) //TODO
                     .build();
-            /*if(db.getCreated() != null)
-                article.setCreated(TODO);
-            if(db.getCreated() != null)
-                article.setCreated(TODO);*/
             return article;
         } else
             return null;
@@ -89,17 +84,14 @@ public class DbConverter {
             final Article article = Article.builder()
                     .id(db.getLong("id"))
                     .name(db.getString("name"))
-                    .created(null)
-                    .updated(null)
+                    //.created(Optional.ofNullable((LocalDateTime)db.getValue("created")).map(DbConverter::toTimeApi)).orElse(null))
+                    .created((OffsetDateTime)db.getValue("created"))
+                    .updated((OffsetDateTime)db.getValue("updated"))
                     .description(db.getString("description"))
                     .price(db.getFloat("price"))
-                    //.customerRating(db.getInteger("customerRating"))
+                    .customerRating(db.getInteger("rate", null))
                     .img(db.getLong("id")) //TODO
                     .build();
-            /*if(db.getCreated() != null)
-                article.setCreated(TODO);
-            if(db.getCreated() != null)
-                article.setCreated(TODO);*/
             return article;
         } else
             return null;
@@ -108,7 +100,7 @@ public class DbConverter {
     public static Articles toDB(final Article api) {
         if(api != null) {
             final Articles article = new Articles(api.getId(), api.getName(), api.getImg(), api.getDescription(), Optional.ofNullable(api.getPrice()).map(Float::doubleValue).orElse(null),
-                    convert(api.getCreated()), convert(api.getUpdated()), Optional.ofNullable(api.getCustomerRating()).map(Integer::longValue).orElse(null));
+                    api.getCreated(), api.getUpdated(), Optional.ofNullable(api.getCustomerRating()).map(Integer::longValue).orElse(null));
             return article;
         } else
             return null;
@@ -198,11 +190,19 @@ public class DbConverter {
             return null;
     }
 
-    private static LocalDateTime convert(final Date date) {
+    private static LocalDateTime convert_(final Date date) {
         if(date != null) {
             return date.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
             //return Instant.ofEpochMilli(date.getTime()).atZone(ZoneId.systemDefault()).toLocalDateTime();
         } else
             return null;
+    }
+
+    private static OffsetDateTime toTimeApi(@NonNull final LocalDateTime dateTime) {
+        return dateTime.atOffset(ZoneOffset.UTC);
+    }
+
+    private static LocalDateTime toTimeDB(@NonNull final OffsetDateTime dateTime) {
+        return dateTime.toLocalDateTime();
     }
 }

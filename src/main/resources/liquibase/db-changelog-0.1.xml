@@ -11,15 +11,15 @@
             <column name="image" type="integer"/>
             <column name="description" type="varchar(250)" encoding="utf-8"/>
             <column name="price" type="decimal" defaultValueNumeric="0.0"/>
-            <column name="created" type="timestamp"/>
-            <column name="updated" type="timestamp"/>
+            <column name="created" type="timestamp with time zone"/>
+            <column name="updated" type="timestamp with time zone"/>
         </createTable>
         <createTable tableName="users">
             <column name="id" type="bigint" autoIncrement="true"><constraints nullable="false" primaryKey="true"/></column>
             <column name="pseudo" type="varchar(50)" encoding="utf-8"><constraints nullable="false" unique="true"/></column>
             <column name="image" type="integer"/>
             <column name="mail" type="varchar(100)" encoding="utf-8"><constraints nullable="false" unique="true"/></column>
-            <column name="created" type="timestamp"/>
+            <column name="created" type="timestamp with time zone"/>
             <column name="admin" type="boolean" defaultValueBoolean="false"><constraints nullable="false"/></column>
             <!--<column name="bio" type="varchar(500)" encoding="utf-8"/>-->
         </createTable>
