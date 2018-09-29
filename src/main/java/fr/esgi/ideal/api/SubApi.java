@@ -33,7 +33,7 @@ public interface SubApi<POJO, DTO> {
             this.get(id.get()).setHandler(res -> {
                 if(res.succeeded()) {
                     if(res.result().isPresent())
-                        RouteUtils.send(routingContext, HttpResponseStatus.NO_CONTENT, this.mapTo(res.result().get()));
+                        RouteUtils.send(routingContext, HttpResponseStatus.OK, this.mapTo(res.result().get()));
                     else
                         RouteUtils.error(routingContext, new NoSuchElementException("This ID not exist"));
                 } else
@@ -54,7 +54,7 @@ public interface SubApi<POJO, DTO> {
         if(id.isPresent())
             this.delete(id.get()).setHandler(res -> {
                 if(res.succeeded()) {
-                    RouteUtils.send(routingContext, null);
+                    RouteUtils.send(routingContext, HttpResponseStatus.NO_CONTENT, null);
                 } else
                     RouteUtils.error(routingContext, "An error occur on the server");
             });
