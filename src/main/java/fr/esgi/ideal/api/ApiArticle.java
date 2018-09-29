@@ -4,15 +4,25 @@ import fr.esgi.ideal.DatabaseVerticle;
 import fr.esgi.ideal.api.dto.Article;
 import fr.esgi.ideal.api.dto.DbConverter;
 import fr.esgi.ideal.dao.tables.pojos.Articles;
+import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.core.Future;
 import io.vertx.core.eventbus.EventBus;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.api.RequestParameter;
+import io.vertx.ext.web.api.RequestParameters;
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Slf4j
 @AllArgsConstructor
@@ -90,6 +100,42 @@ public class ApiArticle implements SubApiAlter<Articles, Article> {
             }
         });
         return future;
+    }
+
+    public void searchArticle(@NonNull final RoutingContext routingContext) {
+        final RequestParameters reqParams = routingContext.get("parsedParameters");
+        final int limit = Optional.ofNullable(reqParams.queryParameter("limit")).map(RequestParameter::getInteger).orElse(20);
+        final int offset = Optional.ofNullable(reqParams.queryParameter("offset")).map(RequestParameter::getInteger).orElse(20);
+        final Optional<String> orderBy = Optional.ofNullable(reqParams.queryParameter("orderby")).map(RequestParameter::getString)
+                                                 .map(String::trim)
+                                                 .map(String::toLowerCase);
+        final boolean order = "asc".equalsIgnoreCase(Optional.ofNullable(reqParams.queryParameter("order")).map(RequestParameter::getString).orElse("asc"));
+        final Optional<Set<String>> keywords = Optional.ofNullable(reqParams.queryParameter("query")).map(RequestParameter::getString)
+                .map(s -> Stream.of(s.split("\\s")).map(String::trim)
+                                                         .map(String::toLowerCase)
+                                                         .filter(kw -> !kw.isEmpty())
+                                                         .collect(Collectors.toSet()))
+                .filter(s -> !s.isEmpty());
+        if(keywords.isPresent()) {
+            final JsonObject jobj = new JsonObject().put("keywords", new JsonArray(new ArrayList<>(keywords.get())))
+                                                    .put("limit", limit)
+                                                    .put("offset", offset)
+                                                    .mergeIn(orderBy.map(ob -> new JsonObject().put("orderby", orderBy.get()).put("order", order))
+                                                                    .orElseGet(JsonObject::new));
+            this.eventBus.<Integer>send(DatabaseVerticle.DB_ARTICLE_SEARCH_TOTAL, jobj, asyncTotal -> {
+                if(asyncTotal.succeeded()) {
+                    this.eventBus.<Collection<Articles>>send(DatabaseVerticle.DB_ARTICLE_SEARCH, jobj, asyncMsg -> {
+                        if(asyncMsg.succeeded())
+                            RouteUtils.send(routingContext, HttpResponseStatus.OK, jobj.put("totalResult", asyncTotal.result().body())
+                                                                                       .put("result", asyncMsg.result().body()));
+                        else
+                            RouteUtils.error(routingContext, "An error occur on the server (phase 2)");
+                    });
+                } else
+                    RouteUtils.error(routingContext, "An error occur on the server (phase 1)");
+            });
+        } else
+            RouteUtils.error(routingContext, "The Id passed is null");
     }
 
    /*

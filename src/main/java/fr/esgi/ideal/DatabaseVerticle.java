@@ -43,8 +43,14 @@ import liquibase.exception.LiquibaseException;
 import liquibase.resource.ClassLoaderResourceAccessor;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import org.jooq.Condition;
 import org.jooq.DSLContext;
+import org.jooq.Record;
+import org.jooq.ResultQuery;
 import org.jooq.SQLDialect;
+import org.jooq.SelectConditionStep;
+import org.jooq.SelectLimitStep;
+import org.jooq.SelectSelectStep;
 import org.jooq.conf.Settings;
 import org.jooq.impl.DSL;
 
@@ -54,6 +60,7 @@ import java.util.InvalidPropertiesFormatException;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -64,6 +71,8 @@ import static fr.esgi.ideal.dao.tables.ArticlesData.ARTICLES_DATA;
 import static fr.esgi.ideal.dao.tables.ArticlesRates.ARTICLES_RATES;
 import static fr.esgi.ideal.dao.tables.Partners.PARTNERS;
 import static fr.esgi.ideal.dao.tables.Users.USERS;
+import static org.jooq.SortOrder.ASC;
+import static org.jooq.SortOrder.DESC;
 
 @Slf4j
 public class DatabaseVerticle extends AbstractVerticle {
@@ -71,6 +80,8 @@ public class DatabaseVerticle extends AbstractVerticle {
     public static final String DB_ARTICLE_GET_BY_ID = "ApiDatabase_Article_GetById";
     public static final String DB_ARTICLE_DELETE_BY_ID = "ApiDatabase_Article_DeleteById";
     public static final String DB_ARTICLE_CREATE = "ApiDatabase_Article_Create";
+    public static final String DB_ARTICLE_SEARCH = "ApiDatabase_Article_Search";
+    public static final String DB_ARTICLE_SEARCH_TOTAL = "ApiDatabase_Article_SearchTotal";
     public static final String DB_PARTNER_GET_ALL = "ApiDatabase_Partner_GetAll";
     public static final String DB_PARTNER_GET_BY_ID = "ApiDatabase_Partner_GetById";
     public static final String DB_PARTNER_DELETE_BY_ID = "ApiDatabase_Partner_DeleteById";
@@ -168,6 +179,21 @@ public class DatabaseVerticle extends AbstractVerticle {
                           .values(/*msg.body().getId(),*/ msg.body().getName(), msg.body().getDescription(), msg.body().getPrice(),
                                   msg.body().getUpdated(), msg.body().getCreated(), msg.body().getImage())
                           .returning().fetchOne().getId()/*.into(Articles.class)*/));
+        final BiFunction<JsonObject, SelectSelectStep<? extends Record>, ResultQuery<? extends Record>> sqlSearch = (jsobj, select) -> Optional
+                .ofNullable(jsobj.getString("orderby"))
+                .map(v -> (Function<SelectConditionStep<? extends Record>, SelectLimitStep<? extends Record>>)
+                          (s -> s.orderBy(ARTICLES_DATA.field(v).sort(jsobj.getBoolean("order", false) ? ASC : DESC))))
+                .orElse(s -> s)
+                .apply(select.from(ARTICLES_DATA)
+                             .where(jsobj.getJsonArray("keywords").stream().map(String.class::cast)
+                                                                                .map(ARTICLES_DATA.NAME.trim().lower()::like)
+                                                                                .map(Condition.class::cast) //seem to be explicit for reduce
+                                                                                .reduce(Condition::or).orElse(null)))
+                .limit(jsobj.getInteger("offset", 20), jsobj.getInteger("limit", 20));
+        this.vertx.eventBus().<JsonObject>consumer(DB_ARTICLE_SEARCH,
+                                                   msg -> execSqlCodec(msg, ArticlesListMessageCodec.class, dsl -> sqlSearch.apply(msg.body(), dsl.select(ARTICLES_DATA.fields())).fetchInto(Articles.class)));
+        this.vertx.eventBus().<JsonObject>consumer(DB_ARTICLE_SEARCH_TOTAL,
+                                                   msg -> execSqlRaw(msg, dsl -> sqlSearch.apply(msg.body(), dsl.selectCount()).fetchOne(0, int.class)));
         /* Partners */
         this.vertx.eventBus().<Void>consumer(DB_PARTNER_GET_ALL,
                                              msg -> execSqlCodec(msg, PartnersListMessageCodec.class, dsl -> new PartnersDao(dsl.configuration()).findAll()));
