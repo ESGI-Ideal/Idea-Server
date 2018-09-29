@@ -44,12 +44,64 @@ paths:
   /search:
     get:
       summary: search in articles
-      description: ''
-      parameters: []
+      description: Search article by keyword(s)
       operationId: doSearch
+      parameters:
+        - in: query
+          name: query
+          required: true
+          schema:
+            type: string
+          allowReserved: true
+          description: keyword(s) to search
+        - in: query
+          name: offset
+          schema:
+            type: integer
+          description: >-
+            The number of items to skip before starting to collect the result
+            set
+        - in: query
+          name: limit
+          schema:
+            type: integer
+          description: The numbers of items to return
+        - in: query
+          name: orderby
+          schema:
+            type: string
+            enum:
+              - price
+              - date
+          description: Ordering result by criteria
+        - in: query
+          name: order
+          schema:
+            type: string
+            enum:
+              - asc
+              - desc
+          description: Ordering result
       responses:
-        default:
+        '200':
           description: Default response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  keywords:
+                    type: string
+                  limit:
+                    type: integer
+                  offset:
+                    type: integer
+                  totalResult:
+                    type: integer
+                  result:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Article'
       tags:
         - article
   /oauth2/token:
@@ -464,6 +516,30 @@ paths:
           description: User's ID not exist
       tags:
         - user
+  '/user/{id}/sells':
+    get:
+      summary: articles selling by an user
+      description: ''
+      operationId: getUserArticlesCreate
+      parameters:
+        - $ref: '#/components/parameters/id'
+      responses:
+        '200':
+          description: List of articles' ID
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: integer
+                  format: int64
+        default:
+          description: User's ID not exist
+      tags:
+        - user
+      security:
+        - OAuth2:
+            - user
   /user/me:
     get:
       summary: informations on current user
