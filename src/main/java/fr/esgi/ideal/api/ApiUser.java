@@ -4,6 +4,7 @@ import fr.esgi.ideal.DatabaseVerticle;
 import fr.esgi.ideal.api.dto.DbConverter;
 import fr.esgi.ideal.api.dto.User;
 import fr.esgi.ideal.dao.tables.pojos.Users;
+import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.core.Future;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.json.JsonObject;
@@ -99,7 +100,7 @@ public class ApiUser implements SubApiAlter<Users, User> {
         if(id.isPresent()) {
             this.eventBus.<Set<Long>>send(DatabaseVerticle.DB_USER_GET_ARTICLES_CREATE, id, asyncMsg -> {
                 if(asyncMsg.succeeded())
-                    RouteUtils.send(routingContext, asyncMsg.result());
+                    RouteUtils.send(routingContext, HttpResponseStatus.OK, asyncMsg.result());
                 else
                     RouteUtils.error(routingContext, "An error occur on the server");
                 });
