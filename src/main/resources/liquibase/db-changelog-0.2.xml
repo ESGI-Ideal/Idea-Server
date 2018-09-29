@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
+
+    <changeSet id="06-add-ref-user-sell-articles" author="Tristan">
+        <comment>Add a reference of articles sell by a user</comment>
+        <!--<dropView viewName="articles" />-->
+        <addColumn tableName="articles_data">
+            <column name="createBy" type="bigint" remarks="User selling this article"><constraints nullable="false"/></column>
+        </addColumn>
+        <addForeignKeyConstraint baseTableName="articles_data" baseColumnNames="createBy"
+                                 referencedTableName="users" referencedColumnNames="id"
+                                 constraintName="fk_articles_createBy_users_id" />
+    </changeSet>
+</databaseChangeLog>

@@ -7,12 +7,15 @@ import fr.esgi.ideal.dao.tables.pojos.Users;
 import io.vertx.core.Future;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.api.RequestParameters;
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Slf4j
 @AllArgsConstructor
@@ -89,6 +92,19 @@ public class ApiUser implements SubApiAlter<Users, User> {
             }
         });
         return future;
+    }
+
+    public void getAllArticlesCreate(@NonNull final RoutingContext routingContext) {
+        final Optional<Long> id = Optional.ofNullable(((RequestParameters) routingContext.get("parsedParameters")).pathParameter("id").getLong());
+        if(id.isPresent()) {
+            this.eventBus.<Set<Long>>send(DatabaseVerticle.DB_USER_GET_ARTICLES_CREATE, id, asyncMsg -> {
+                if(asyncMsg.succeeded())
+                    RouteUtils.send(routingContext, asyncMsg.result());
+                else
+                    RouteUtils.error(routingContext, "An error occur on the server");
+                });
+        } else
+            RouteUtils.error(routingContext, "The Id passed is null");
     }
 
   /*

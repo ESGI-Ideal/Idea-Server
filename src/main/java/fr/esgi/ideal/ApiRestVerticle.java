@@ -194,6 +194,7 @@ public class ApiRestVerticle extends AbstractVerticle {
         routerFactory.addHandlerByOperationId("getUser", api::get);
         routerFactory.addHandlerByOperationId("deleteUser", api::delete);
         routerFactory.addHandlerByOperationId("newUser", api::create);
+        routerFactory.addHandlerByOperationId("getUserArticlesCreate", api::getAllArticlesCreate);
         //getCurrentUser
         final ApiAuth auth = new ApiAuth(eventBus);
         /*routerFactory.addSecurityHandler("OAuth2", new AuthHandler() {

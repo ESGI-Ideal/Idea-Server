@@ -14,21 +14,20 @@ import fr.esgi.ideal.api.database.codec.PartnersListMessageCodec;
 import fr.esgi.ideal.api.database.codec.PartnersMessageCodec;
 import fr.esgi.ideal.api.database.codec.UsersListMessageCodec;
 import fr.esgi.ideal.api.database.codec.UsersMessageCodec;
-import fr.esgi.ideal.internal.FSIO;
-import fr.esgi.ideal.internal.P6Param;
-import fr.esgi.ideal.internal.SqlParam;
-import fr.esgi.ideal.dao.tables.ArticlesRates;
 import fr.esgi.ideal.dao.tables.daos.AdsDao;
 import fr.esgi.ideal.dao.tables.daos.ArticlesDataDao;
-import fr.esgi.ideal.dao.tables.daos.ArticlesRatesDao;
 import fr.esgi.ideal.dao.tables.daos.ImagesDao;
 import fr.esgi.ideal.dao.tables.daos.PartnersDao;
 import fr.esgi.ideal.dao.tables.daos.UsersDao;
 import fr.esgi.ideal.dao.tables.pojos.Ads;
 import fr.esgi.ideal.dao.tables.pojos.Articles;
+import fr.esgi.ideal.dao.tables.pojos.ArticlesData;
 import fr.esgi.ideal.dao.tables.pojos.Images;
 import fr.esgi.ideal.dao.tables.pojos.Partners;
 import fr.esgi.ideal.dao.tables.pojos.Users;
+import fr.esgi.ideal.internal.FSIO;
+import fr.esgi.ideal.internal.P6Param;
+import fr.esgi.ideal.internal.SqlParam;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
 import io.vertx.core.eventbus.DeliveryOptions;
@@ -82,6 +81,7 @@ public class DatabaseVerticle extends AbstractVerticle {
     public static final String DB_USER_AUTH_USER_EXIST = "ApiDatabase_User_AuthTestUserExist";
     public static final String DB_USER_DELETE_BY_ID = "ApiDatabase_User_DeleteById";
     public static final String DB_USER_CREATE = "ApiDatabase_User_Create";
+    public static final String DB_USER_GET_ARTICLES_CREATE = "ApiDatabase_User_ArticlesCreate";
     public static final String DB_AD_GET_ALL = "ApiDatabase_Ads_GetAll";
     public static final String DB_AD_GET_BY_ID = "ApiDatabse_Ads_GetById";
     public static final String DB_AD_DELETE_BY_ID = "ApiDatabse_Ads_DeleteById";
@@ -190,6 +190,9 @@ public class DatabaseVerticle extends AbstractVerticle {
                 msg -> execSqlRaw(msg, dsl -> dsl.insertInto(USERS, USERS.MAIL, USERS.ADMIN, USERS.IMAGE, USERS.CREATED)
                         .values(/*msg.body().getId(),*/ msg.body().getMail(),msg.body().getAdmin(), msg.body().getImage(), msg.body().getCreated())
                         .returning().fetchOne().getId()/*.into(Users.class)*/));
+        this.vertx.eventBus().<Long>consumer(DB_USER_GET_ARTICLES_CREATE,
+                                             msg -> execSqlRaw(msg, dsl -> new ArticlesDataDao(dsl.configuration()).fetchByCreateby(msg.body())
+                                                                                .parallelStream().mapToLong(ArticlesData::getId).toArray()));
         /* Ads */
         this.vertx.eventBus().<Void>consumer(DB_AD_GET_ALL,
                                              msg -> execSqlCodec(msg, AdsListMessageCodec.class, dsl -> new AdsDao(dsl.configuration()).findAll()));
