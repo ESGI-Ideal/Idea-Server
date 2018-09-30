@@ -192,14 +192,14 @@
 <span class="sourceLineNo">184</span>                .map(v -&gt; (Function&lt;SelectConditionStep&lt;? extends Record&gt;, SelectLimitStep&lt;? extends Record&gt;&gt;)<a name="line.184"></a>
 <span class="sourceLineNo">185</span>                          (s -&gt; s.orderBy(ARTICLES_DATA.field(v).sort(jsobj.getBoolean("order", false) ? ASC : DESC))))<a name="line.185"></a>
 <span class="sourceLineNo">186</span>                .orElse(s -&gt; s)<a name="line.186"></a>
-<span class="sourceLineNo">187</span>                .apply(select.from(ARTICLES_DATA)<a name="line.187"></a>
+<span class="sourceLineNo">187</span>                .apply(select.from(ARTICLES)<a name="line.187"></a>
 <span class="sourceLineNo">188</span>                             .where(jsobj.getJsonArray("keywords").stream().map(String.class::cast)<a name="line.188"></a>
-<span class="sourceLineNo">189</span>                                                                                .map(ARTICLES_DATA.NAME.trim().lower()::like)<a name="line.189"></a>
+<span class="sourceLineNo">189</span>                                                                                .map(ARTICLES.NAME.trim().lower()::like)<a name="line.189"></a>
 <span class="sourceLineNo">190</span>                                                                                .map(Condition.class::cast) //seem to be explicit for reduce<a name="line.190"></a>
 <span class="sourceLineNo">191</span>                                                                                .reduce(Condition::or).orElse(null)))<a name="line.191"></a>
 <span class="sourceLineNo">192</span>                .limit(jsobj.getInteger("offset", 20), jsobj.getInteger("limit", 20));<a name="line.192"></a>
 <span class="sourceLineNo">193</span>        this.vertx.eventBus().&lt;JsonObject&gt;consumer(DB_ARTICLE_SEARCH,<a name="line.193"></a>
-<span class="sourceLineNo">194</span>                                                   msg -&gt; execSqlCodec(msg, ArticlesListMessageCodec.class, dsl -&gt; sqlSearch.apply(msg.body(), dsl.select(ARTICLES_DATA.fields())).fetchInto(Articles.class)));<a name="line.194"></a>
+<span class="sourceLineNo">194</span>                                                   msg -&gt; execSqlCodec(msg, ArticlesListMessageCodec.class, dsl -&gt; sqlSearch.apply(msg.body(), dsl.select(ARTICLES.fields())).fetchInto(Articles.class)));<a name="line.194"></a>
 <span class="sourceLineNo">195</span>        this.vertx.eventBus().&lt;JsonObject&gt;consumer(DB_ARTICLE_SEARCH_TOTAL,<a name="line.195"></a>
 <span class="sourceLineNo">196</span>                                                   msg -&gt; execSqlRaw(msg, dsl -&gt; sqlSearch.apply(msg.body(), dsl.selectCount()).fetchOne(0, int.class)));<a name="line.196"></a>
 <span class="sourceLineNo">197</span>        /* Partners */<a name="line.197"></a>
