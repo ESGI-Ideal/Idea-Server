@@ -30,7 +30,13 @@
           "assets_dir": "./ideal_assets/",
           "http.port": 18080,
           "https.port": 14443,
-          "http2.port": 18443
+          "http2.port": 18443,
+          "storage": {
+            "type": "local",
+            "params": {
+              "assets_dir": "./ideal_assets/"
+            }
+          }
         },
         "instances": 4,
         "ha": false,
