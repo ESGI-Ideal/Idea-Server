@@ -13,6 +13,7 @@ paths:
                   type: array
                   items:
                     $ref: '#/components/schemas/Image'
+                  uniqueItems: true
       tags:
         - image
     post:
@@ -130,14 +131,7 @@ components:
     Image:
       description: Information about an image
       allOf:
-        - type: object
-          required:
-            - id
-          properties:
-            id:
-              type: integer
-              format: int64
-              minimum: 0
+        - $ref: '#/components/schemas/ObjId'
         - $ref: '#/components/schemas/ImageMetas'
       xml:
         name: Image
