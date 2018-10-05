@@ -20,6 +20,7 @@ import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.Optional;
+import java.util.OptionalLong;
 
 /**
  * Converter of beans between DB DAO and API DTO
@@ -67,11 +68,14 @@ public class DbConverter {
             final Article article = Article.builder()
                     .id(db.getId())
                     .name(db.getName())
+                    .createBy(db.getCreateby())
                     .created(db.getCreated())
                     .updated(db.getUpdated())
                     .description(db.getDescription())
                     .price(Optional.ofNullable(db.getPrice()).map(Double::floatValue).orElse(null))
-                    .customerRating(Math.toIntExact(db.getRate()))
+                    .customerRatingPositive(Math.toIntExact(db.getRatePositive()))
+                    .customerRatingNegative(Math.toIntExact(db.getRateNegative()))
+                    .customerRating((float)(((double)db.getRatePositive()) / ((double)(db.getRatePositive()+db.getRateNegative()))))
                     .img(db.getImage()) //TODO
                     .build();
             return article;
@@ -84,12 +88,15 @@ public class DbConverter {
             final Article article = Article.builder()
                     .id(db.getLong("id"))
                     .name(db.getString("name"))
+                    .createBy(db.getLong("createBy"))
                     //.created(Optional.ofNullable((LocalDateTime)db.getValue("created")).map(DbConverter::toTimeApi)).orElse(null))
                     .created((OffsetDateTime)db.getValue("created"))
                     .updated((OffsetDateTime)db.getValue("updated"))
                     .description(db.getString("description"))
                     .price(db.getFloat("price"))
-                    .customerRating(db.getInteger("rate", null))
+                    .customerRatingPositive(db.getInteger("customerRatingPositive", 0))
+                    .customerRatingNegative(db.getInteger("customerRatingNegative", 0))
+                    .customerRating(db.getFloat("customerRating", null))
                     .img(db.getLong("id")) //TODO
                     .build();
             return article;
@@ -99,8 +106,9 @@ public class DbConverter {
 
     public static Articles toDB(final Article api) {
         if(api != null) {
-            final Articles article = new Articles(api.getId(), api.getName(), api.getImg(), api.getDescription(), Optional.ofNullable(api.getPrice()).map(Float::doubleValue).orElse(null),
-                    api.getCreated(), api.getUpdated(), Optional.ofNullable(api.getCustomerRating()).map(Integer::longValue).orElse(null));
+            final Articles article = new Articles(api.getId(), api.getName(), api.getImg(), api.getDescription(),
+                    Optional.ofNullable(api.getPrice()).map(Float::doubleValue).orElse(null),
+                    api.getCreated(), api.getUpdated(), 0L, 0L, 0L);
             return article;
         } else
             return null;

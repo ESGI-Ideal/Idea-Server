@@ -13,6 +13,7 @@ paths:
                   type: array
                   items:
                     $ref: '#/components/schemas/Article'
+                  uniqueItems: true
       tags:
         - article
     #put:
@@ -69,6 +70,42 @@ paths:
           description: Article's ID not exist
       tags:
         - article
+  /article/{id}/like:
+    post:
+      description: 'Vote of a user on an article'
+      operationId: articleVote
+      parameters:
+        - $ref: '#/components/parameters/id'
+      requestBody:
+        description: True if user like-it, False if not
+        required: true
+        content:
+          application/json:
+            schema:
+              type: boolean
+              #additionalProperties: true
+          #application/xml:
+          #  schema:
+          #    type: boolean
+      responses:
+        '200':
+          description: Datas on the article
+        default:
+          description: Article's ID not exist
+      tags:
+        - article
+    delete:
+      description: 'Remove the vote of a user on an article'
+      operationId: articleUnvote
+      parameters:
+        - $ref: '#/components/parameters/id'
+      responses:
+        '200':
+          description: Vote deleted
+        default:
+          description: Article's ID not exist
+      tags:
+        - article
 
 components:
   schemas:
@@ -82,6 +119,7 @@ components:
               type: integer
               format: int64
               minimum: 0
+              readOnly: true
         - $ref: '#/components/schemas/ArticleContent'
       xml:
         name: Article
@@ -95,6 +133,11 @@ components:
           type: integer
           format: int64
           nullable: true
+        createdBy:
+          #$ref: "#/components/schemas/User"
+          type: integer
+          format: int64
+          readOnly: true
         created:
           type: string
           format: date-time
@@ -108,6 +151,24 @@ components:
           format: float
         customerRating:
           type: number
+          format: float
+          readOnly: true
+          minimum: 0
+          exclusiveMinimim: false
+          maximum: 1
+          exclusiveMaximim: false
+          #multipleOf: 0.5
+        customerRatingPositive:
+          type: integer
           format: int32
+          readOnly: true
+          minimum: 0
+          exclusiveMinimim: false
+        customerRatingNegative:
+          type: integer
+          format: int32
+          readOnly: true
+          minimum: 0
+          exclusiveMinimim: false
       xml:
         name: ArticleData

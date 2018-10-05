@@ -16,12 +16,14 @@ import fr.esgi.ideal.api.database.codec.UsersListMessageCodec;
 import fr.esgi.ideal.api.database.codec.UsersMessageCodec;
 import fr.esgi.ideal.dao.tables.daos.AdsDao;
 import fr.esgi.ideal.dao.tables.daos.ArticlesDataDao;
+import fr.esgi.ideal.dao.tables.daos.ArticlesRatesDao;
 import fr.esgi.ideal.dao.tables.daos.ImagesDao;
 import fr.esgi.ideal.dao.tables.daos.PartnersDao;
 import fr.esgi.ideal.dao.tables.daos.UsersDao;
 import fr.esgi.ideal.dao.tables.pojos.Ads;
 import fr.esgi.ideal.dao.tables.pojos.Articles;
 import fr.esgi.ideal.dao.tables.pojos.ArticlesData;
+import fr.esgi.ideal.dao.tables.pojos.ArticlesRates;
 import fr.esgi.ideal.dao.tables.pojos.Images;
 import fr.esgi.ideal.dao.tables.pojos.Partners;
 import fr.esgi.ideal.dao.tables.pojos.Users;
@@ -82,6 +84,8 @@ public class DatabaseVerticle extends AbstractVerticle {
     public static final String DB_ARTICLE_CREATE = "ApiDatabase_Article_Create";
     public static final String DB_ARTICLE_SEARCH = "ApiDatabase_Article_Search";
     public static final String DB_ARTICLE_SEARCH_TOTAL = "ApiDatabase_Article_SearchTotal";
+    public static final String DB_ARTICLE_VOTE = "ApiDatabase_Article_Vote";
+    public static final String DB_ARTICLE_UNVOTE = "ApiDatabase_Article_UnVote";
     public static final String DB_PARTNER_GET_ALL = "ApiDatabase_Partner_GetAll";
     public static final String DB_PARTNER_GET_BY_ID = "ApiDatabase_Partner_GetById";
     public static final String DB_PARTNER_DELETE_BY_ID = "ApiDatabase_Partner_DeleteById";
@@ -194,6 +198,14 @@ public class DatabaseVerticle extends AbstractVerticle {
                                                    msg -> execSqlCodec(msg, ArticlesListMessageCodec.class, dsl -> sqlSearch.apply(msg.body(), dsl.select(ARTICLES.fields())).fetchInto(Articles.class)));
         this.vertx.eventBus().<JsonObject>consumer(DB_ARTICLE_SEARCH_TOTAL,
                                                    msg -> execSqlRaw(msg, dsl -> sqlSearch.apply(msg.body(), dsl.selectCount()).fetchOne(0, int.class)));
+        this.vertx.eventBus().<JsonObject>consumer(DB_ARTICLE_VOTE,
+                                                   msg -> execSqlNoReturn(msg, dsl -> new ArticlesRatesDao(dsl.configuration()).insert(new ArticlesRates(msg.body().getLong("articleId"),
+                                                                                                                                                         msg.body().getLong("userId"),
+                                                                                                                                                         msg.body().getBoolean("like")))));
+        this.vertx.eventBus().<JsonObject>consumer(DB_ARTICLE_UNVOTE,
+                                                   msg -> execSqlNoReturn(msg, dsl -> dsl.deleteFrom(ARTICLES_RATES).where(ARTICLES_RATES.ARTICLE.eq(msg.body().getLong("articleId")))
+                                                                                                                    .and(ARTICLES_RATES.USER.eq(msg.body().getLong("userId")))));
+
         /* Partners */
         this.vertx.eventBus().<Void>consumer(DB_PARTNER_GET_ALL,
                                              msg -> execSqlCodec(msg, PartnersListMessageCodec.class, dsl -> new PartnersDao(dsl.configuration()).findAll()));

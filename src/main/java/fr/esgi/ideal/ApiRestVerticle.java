@@ -201,6 +201,8 @@ public class ApiRestVerticle extends AbstractVerticle {
         routerFactory.addHandlerByOperationId("deleteArticle", api::delete);
         routerFactory.addHandlerByOperationId("newArticle", api::create);
         routerFactory.addHandlerByOperationId("doSearch", api::searchArticle);
+        routerFactory.addHandlerByOperationId("articleVote", api::voteArticle);
+        routerFactory.addHandlerByOperationId("articleUnvote", api::unvoteArticle);
     }
 
     private static void addHandleUser(@NonNull final EventBus eventBus, @NonNull final OpenAPI3RouterFactory routerFactory) {
