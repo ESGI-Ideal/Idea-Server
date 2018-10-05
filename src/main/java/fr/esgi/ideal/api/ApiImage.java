@@ -115,7 +115,7 @@ public class ApiImage implements SubApi<Images, Image> {
         final String path = ((LocalStorage)this.storage).generatePath(TypeObject.Image, id);
         this.vertx.fileSystem().exists(path, res -> {
             if(res.succeeded())
-                routingContext.response().sendFile(res.result() ? path : this.noimg.toString());
+                routingContext.response().putHeader("Content-Type", "image/jpg").sendFile(res.result() ? path : this.noimg.toString());
             else
                 RouteUtils.error(routingContext, res.cause().toString());
         });
