@@ -33,6 +33,8 @@ paths:
       responses:
         '201':
           description: 'Create'
+      tags:
+        - partner
   /partner/{id}:
     get:
       summary: informations on an partner

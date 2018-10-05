@@ -37,6 +37,8 @@ paths:
           description: 'Create'
         '200':
           description: 'Created'
+      tags:
+        - ads
   /ad/{id}:
     get:
       summary: informations on an ad
