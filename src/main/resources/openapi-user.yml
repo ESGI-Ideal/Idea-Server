@@ -112,6 +112,71 @@ paths:
             - user
             - admin
       responses:
+        '200':
+          description: user's data summary
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/User'
+                  - type: object
+                    properties:
+                      favorites:
+                        type: integer
+                        format: int32
+                    additionalProperties: true  #this endpoint isn't yet stable
+        default:
+          description: ''
+      tags:
+        - user
+  /user/me/favs:
+    get:
+      summary: articles in favorite
+      operationId: getCurrentUserFavorites
+      security:
+        - OAuth2:
+            - user
+      responses:
+        200:
+          description: articles in favorites
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Article'
+                uniqueItems: true
+        default:
+          description: ''
+      tags:
+        - user
+  /user/me/favs/{id}:
+    put:
+      summary: mark an article in favorite
+      operationId: addArticleCurrentUserFavorites
+      parameters:
+        - $ref: '#/components/parameters/id'
+      security:
+        - OAuth2:
+          - user
+      responses:
+        201:
+          description: article add in favorites
+        default:
+          description: ''
+      tags:
+        - user
+    delete:
+      summary: remove an article from favorites
+      operationId: deleteArticleCurrentUserFavorites
+      parameters:
+        - $ref: '#/components/parameters/id'
+      security:
+        - OAuth2:
+          - user
+      responses:
+        204:
+          description: article remove from favorites
         default:
           description: ''
       tags:

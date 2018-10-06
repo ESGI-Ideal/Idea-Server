@@ -20,6 +20,7 @@ import fr.esgi.ideal.dao.tables.daos.ArticlesRatesDao;
 import fr.esgi.ideal.dao.tables.daos.ImagesDao;
 import fr.esgi.ideal.dao.tables.daos.PartnersDao;
 import fr.esgi.ideal.dao.tables.daos.UsersDao;
+import fr.esgi.ideal.dao.tables.daos.UsersFavoritesDao;
 import fr.esgi.ideal.dao.tables.pojos.Ads;
 import fr.esgi.ideal.dao.tables.pojos.Articles;
 import fr.esgi.ideal.dao.tables.pojos.ArticlesData;
@@ -27,6 +28,8 @@ import fr.esgi.ideal.dao.tables.pojos.ArticlesRates;
 import fr.esgi.ideal.dao.tables.pojos.Images;
 import fr.esgi.ideal.dao.tables.pojos.Partners;
 import fr.esgi.ideal.dao.tables.pojos.Users;
+import fr.esgi.ideal.dao.tables.pojos.UsersFavorites;
+import fr.esgi.ideal.dao.tables.records.UsersFavoritesRecord;
 import fr.esgi.ideal.internal.FSIO;
 import fr.esgi.ideal.internal.P6Param;
 import fr.esgi.ideal.internal.SqlParam;
@@ -73,6 +76,7 @@ import static fr.esgi.ideal.dao.tables.ArticlesData.ARTICLES_DATA;
 import static fr.esgi.ideal.dao.tables.ArticlesRates.ARTICLES_RATES;
 import static fr.esgi.ideal.dao.tables.Partners.PARTNERS;
 import static fr.esgi.ideal.dao.tables.Users.USERS;
+import static fr.esgi.ideal.dao.tables.UsersFavorites.USERS_FAVORITES;
 import static org.jooq.SortOrder.ASC;
 import static org.jooq.SortOrder.DESC;
 
@@ -97,6 +101,10 @@ public class DatabaseVerticle extends AbstractVerticle {
     public static final String DB_USER_DELETE_BY_ID = "ApiDatabase_User_DeleteById";
     public static final String DB_USER_CREATE = "ApiDatabase_User_Create";
     public static final String DB_USER_GET_ARTICLES_CREATE = "ApiDatabase_User_ArticlesCreate";
+    public static final String DB_USER_GET_INFOS = "ApiDatabase_User_AboutMe";
+    public static final String DB_USER_GET_ARTICLES_FAVORITES = "ApiDatabase_User_ArticlesFavorites_GetAll";
+    public static final String DB_USER_ADD_ARTICLE_FAVORITES = "ApiDatabase_User_ArticlesFavorites_Add";
+    public static final String DB_USER_DELETE_ARTICLE_FAVORITES = "ApiDatabase_User_ArticlesFavorites_Delete";
     public static final String DB_AD_GET_ALL = "ApiDatabase_Ads_GetAll";
     public static final String DB_AD_GET_BY_ID = "ApiDatabse_Ads_GetById";
     public static final String DB_AD_DELETE_BY_ID = "ApiDatabse_Ads_DeleteById";
@@ -175,6 +183,7 @@ public class DatabaseVerticle extends AbstractVerticle {
         this.vertx.eventBus().<Long>consumer(DB_ARTICLE_DELETE_BY_ID,
                                              msg -> execSqlNoReturn(msg, dsl -> {
                                                  dsl.deleteFrom(ARTICLES_RATES).where(ARTICLES_RATES.ARTICLE.eq(msg.body()));
+                                                 dsl.deleteFrom(USERS_FAVORITES).where(USERS_FAVORITES.ARTICLEID.eq(msg.body()));
                                                  new ArticlesDataDao(dsl.configuration()).deleteById(msg.body());
                                              }));
         this.vertx.eventBus().<Articles>consumer(DB_ARTICLE_CREATE,
@@ -231,6 +240,26 @@ public class DatabaseVerticle extends AbstractVerticle {
         this.vertx.eventBus().<Long>consumer(DB_USER_GET_ARTICLES_CREATE,
                                              msg -> execSqlRaw(msg, dsl -> new ArticlesDataDao(dsl.configuration()).fetchByCreateby(msg.body())
                                                                                 .parallelStream().mapToLong(ArticlesData::getId).toArray()));
+        //select users.*, count(*) as favorites from users left join users_favorites on id=userId group by id
+        this.vertx.eventBus().<Long>consumer(DB_USER_GET_ARTICLES_FAVORITES,
+                                             msg -> execSqlRaw(msg, dsl -> new JsonObject(dsl.select(USERS.asterisk(), DSL.count()/*.over()*/.as("favorites"))
+                                                                                             .from(USERS).leftJoin(USERS_FAVORITES).on(USERS.ID.eq(USERS_FAVORITES.USERID))
+                                                                                             .where(USERS.ID.eq(msg.body()))
+                                                                                             .groupBy(USERS.ID)
+                                                                                             .fetchOneMap())));
+        this.vertx.eventBus().<Long>consumer(DB_USER_GET_INFOS,
+                                             msg -> execSqlRaw(msg, dsl -> dsl.select(ARTICLES.asterisk())
+                                                                              .from(USERS_FAVORITES).leftJoin(ARTICLES).on(USERS_FAVORITES.ARTICLEID.eq(ARTICLES.ID))
+                                                                              .where(USERS_FAVORITES.USERID.eq(msg.body()))
+                                                                              .fetchInto(Articles.class)));
+        this.vertx.eventBus().<JsonObject>consumer(DB_USER_DELETE_ARTICLE_FAVORITES,
+                                                   msg -> execSqlNoReturn(msg, dsl -> new UsersFavoritesDao(dsl.configuration())
+                                                           .deleteById(new UsersFavoritesRecord(msg.body().getLong("user"),
+                                                                                                msg.body().getLong("article")))));
+        this.vertx.eventBus().<JsonObject>consumer(DB_USER_ADD_ARTICLE_FAVORITES,
+                                                   msg -> execSqlNoReturn(msg, dsl -> new UsersFavoritesDao(dsl.configuration())
+                                                           .insert(new UsersFavorites(msg.body().getLong("user"),
+                                                                                      msg.body().getLong("article")))));
         /* Ads */
         this.vertx.eventBus().<Void>consumer(DB_AD_GET_ALL,
                                              msg -> execSqlCodec(msg, AdsListMessageCodec.class, dsl -> new AdsDao(dsl.configuration()).findAll()));
