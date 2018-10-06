@@ -188,7 +188,7 @@ components:
           type: integer
           format: int64
           minimum: 0
-          exclusiveMinimim: false
+          #exclusiveMinimim: false
           readOnly: true
 
   responses:
@@ -199,75 +199,43 @@ components:
     '204':
         description: 'Entity deleted'
         content:
-            application/json:
-                schema:
-                    AnyValue: {}
-            application/xml:
-                schema:
-                    AnyValue: {}
+            application/json: {}
+            application/xml: {}
     '304':
         description: 'Entity not modified'
         content:
-            application/json:
-                schema:
-                    AnyValue: {}
-            application/xml:
-                schema:
-                    AnyValue: {}
+            application/json: {}
+            application/xml: {}
     '400':
         description: 'Illegal input for operation'
         content:
-            application/json:
-                schema:
-                    AnyValue: {}
-            application/xml:
-                schema:
-                    AnyValue: {}
+            application/json: {}
+            application/xml: {}
     '406':
         description: 'Illegal input for operation'
         content:
-            application/json:
-                schema:
-                    AnyValue: {}
-            application/xml:
-                schema:
-                    AnyValue: {}
+            application/json: {}
+            application/xml: {}
     '404':
         description: 'Entity not found' #Bad request
         content:
-            application/json:
-                schema:
-                    AnyValue: {}
-            application/xml:
-                schema:
-                    AnyValue: {}
+            application/json: {}
+            application/xml: {}
     '401':
         description: 'Authentication required for access this resource'
         content:
-            application/json:
-                schema:
-                    AnyValue: {}
-            application/xml:
-                schema:
-                    AnyValue: {}
+            application/json: {}
+            application/xml: {}
     '403':
         description: 'Privileges access refused'
         content:
-            application/json:
-                schema:
-                    AnyValue: {}
-            application/xml:
-                schema:
-                    AnyValue: {}
+            application/json: {}
+            application/xml: {}
     '409':
         description: 'Entity conflicts with operation'
         content:
-            application/json:
-                schema:
-                    AnyValue: {}
-            application/xml:
-                schema:
-                    AnyValue: {}
+            application/json: {}
+            application/xml: {}
   parameters:
     id:
         name: id
