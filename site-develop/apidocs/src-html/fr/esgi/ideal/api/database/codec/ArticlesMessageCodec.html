@@ -19,10 +19,11 @@
 <span class="sourceLineNo">011</span><a name="line.11"></a>
 <span class="sourceLineNo">012</span>    @Override<a name="line.12"></a>
 <span class="sourceLineNo">013</span>    Articles decodeFromWire(final JsonObject json) {<a name="line.13"></a>
-<span class="sourceLineNo">014</span>        return new Articles(json.getLong("id"), json.getString("name"), json.getLong("image"), json.getString("description"),<a name="line.14"></a>
-<span class="sourceLineNo">015</span>                      null/*price*/, null/*created*/, null/*updated*/, json.getLong("rate"));<a name="line.15"></a>
-<span class="sourceLineNo">016</span>    }<a name="line.16"></a>
-<span class="sourceLineNo">017</span>}<a name="line.17"></a>
+<span class="sourceLineNo">014</span>        return json.mapTo(Articles.class);<a name="line.14"></a>
+<span class="sourceLineNo">015</span>        //return new Articles(json.getLong("id"), json.getString("name"), json.getLong("image"), json.getString("description"),<a name="line.15"></a>
+<span class="sourceLineNo">016</span>        //              null/*price*/, null/*created*/, null/*updated*/, json.getLong("rate"));<a name="line.16"></a>
+<span class="sourceLineNo">017</span>    }<a name="line.17"></a>
+<span class="sourceLineNo">018</span>}<a name="line.18"></a>
 
 
 

@@ -28,6 +28,7 @@ tags:
       description: Find out more about our partners
       url: 'http://doc/todo'
   - name: ads
+  - name: image
 paths:
   /:
     get:
@@ -41,6 +42,7 @@ paths:
             application/json:
               schema:
                 type: object
+                additionalProperties: true
   /search:
     get:
       summary: search in articles
@@ -102,6 +104,7 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/Article'
+                    uniqueItems: true
       tags:
         - article
   /oauth2/token:
@@ -139,6 +142,8 @@ paths:
                   format: password
                 scope:
                   type: array
+                  items:
+                    type: string
       responses:
         '400':
           description: Access token error
@@ -163,6 +168,7 @@ paths:
                 items:
                   type: integer
                   format: int64
+                uniqueItems: true
       tags:
         - ads
     post:
@@ -183,6 +189,11 @@ paths:
           description: Created
         '201':
           description: Create
+      tags:
+        - ads
+      security:
+        - OAuth2:
+            - admin
   '/ad/{id}':
     get:
       summary: informations on an ad
@@ -217,6 +228,9 @@ paths:
           description: Ad's ID not exist
       tags:
         - ads
+      security:
+        - OAuth2:
+            - admin
   /article:
     get:
       summary: articles list
@@ -231,6 +245,7 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Article'
+                uniqueItems: true
       tags:
         - article
     post:
@@ -249,6 +264,11 @@ paths:
       responses:
         '201':
           description: Create
+      tags:
+        - article
+      security:
+        - OAuth2:
+            - user
   '/article/{id}':
     get:
       summary: informations on an article
@@ -283,6 +303,47 @@ paths:
           description: Article's ID not exist
       tags:
         - article
+      security:
+        - OAuth2:
+            - user
+  '/article/{id}/like':
+    post:
+      description: Vote of a user on an article
+      operationId: articleVote
+      parameters:
+        - $ref: '#/components/parameters/id'
+      requestBody:
+        description: 'True if user like-it, False if not'
+        required: true
+        content:
+          application/json:
+            schema:
+              type: boolean
+      responses:
+        '200':
+          description: Datas on the article
+        default:
+          description: Article's ID not exist
+      tags:
+        - article
+      security:
+        - OAuth2:
+            - user
+    delete:
+      description: Remove the vote of a user on an article
+      operationId: articleUnvote
+      parameters:
+        - $ref: '#/components/parameters/id'
+      responses:
+        '200':
+          description: Vote deleted
+        default:
+          description: Article's ID not exist
+      tags:
+        - article
+      security:
+        - OAuth2:
+            - user
   /image:
     get:
       summary: Liste les images disponibles
@@ -297,6 +358,9 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Image'
+                uniqueItems: true
+      tags:
+        - image
     post:
       summary: Upload une nouvelle image
       description: ''
@@ -318,6 +382,11 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Image'
+      tags:
+        - image
+      security:
+        - OAuth2:
+            - user
   '/image/{id}':
     parameters:
       - $ref: '#/components/parameters/id'
@@ -331,7 +400,11 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Image'
+                $ref: '#/components/schemas/ImageMetas'
+        '404':
+          description: Not found
+      tags:
+        - image
     delete:
       summary: Supprime une image
       description: ''
@@ -339,9 +412,14 @@ paths:
       responses:
         '200':
           description: OK
+      tags:
+        - image
+      security:
+        - OAuth2:
+            - user
   '/image/{id}/file':
     get:
-      summary: Récupère l.image (données binaires)
+      summary: Récupère l'image (données binaires)
       description: ''
       operationId: getImageFile
       parameters:
@@ -350,15 +428,17 @@ paths:
         '200':
           description: OK
           content:
-            image/jpg:
+            image/*:
               schema:
                 type: string
                 format: binary
         '404':
           description: Not found
+      tags:
+        - image
   '/image/{id}/thumb':
     get:
-      summary: Génère une miniature de l.image (données binaires)
+      summary: Génère une miniature de l'image (données binaires)
       description: ''
       operationId: getImageThumb
       parameters:
@@ -395,6 +475,7 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Partner'
+                uniqueItems: true
       tags:
         - partner
     post:
@@ -413,6 +494,11 @@ paths:
       responses:
         '201':
           description: Create
+      tags:
+        - partner
+      security:
+        - OAuth2:
+            - admin
   '/partner/{id}':
     get:
       summary: informations on an partner
@@ -447,6 +533,9 @@ paths:
           description: Partner's ID not exist
       tags:
         - partner
+      security:
+        - OAuth2:
+            - admin
   /user:
     get:
       summary: users list
@@ -461,6 +550,7 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/User'
+                uniqueItems: true
       tags:
         - user
     post:
@@ -479,6 +569,8 @@ paths:
       responses:
         '201':
           description: Create
+      tags:
+        - user
   '/user/{id}':
     get:
       summary: informations on an user
@@ -516,6 +608,9 @@ paths:
           description: User's ID not exist
       tags:
         - user
+      security:
+        - OAuth2:
+            - admin
   '/user/{id}/sells':
     get:
       summary: articles selling by an user
@@ -533,6 +628,7 @@ paths:
                 items:
                   type: integer
                   format: int64
+                uniqueItems: true
         default:
           description: User's ID not exist
       tags:
@@ -549,6 +645,71 @@ paths:
             - user
             - admin
       responses:
+        '200':
+          description: user's data summary
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/User'
+                  - type: object
+                    properties:
+                      favorites:
+                        type: integer
+                        format: int32
+                    additionalProperties: true
+        default:
+          description: ''
+      tags:
+        - user
+  /user/me/favs:
+    get:
+      summary: articles in favorite
+      operationId: getCurrentUserFavorites
+      security:
+        - OAuth2:
+            - user
+      responses:
+        '200':
+          description: articles in favorites
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Article'
+                uniqueItems: true
+        default:
+          description: ''
+      tags:
+        - user
+  '/user/me/favs/{id}':
+    put:
+      summary: mark an article in favorite
+      operationId: addArticleCurrentUserFavorites
+      parameters:
+        - $ref: '#/components/parameters/id'
+      security:
+        - OAuth2:
+            - user
+      responses:
+        '201':
+          description: article add in favorites
+        default:
+          description: ''
+      tags:
+        - user
+    delete:
+      summary: remove an article from favorites
+      operationId: deleteArticleCurrentUserFavorites
+      parameters:
+        - $ref: '#/components/parameters/id'
+      security:
+        - OAuth2:
+            - user
+      responses:
+        '204':
+          description: article remove from favorites
         default:
           description: ''
       tags:
@@ -578,16 +739,19 @@ components:
           type: string
         message:
           type: string
+    ObjId:
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          type: integer
+          format: int64
+          minimum: 0
+          readOnly: true
     Ad:
       allOf:
-        - type: object
-          required:
-            - id
-          properties:
-            id:
-              type: integer
-              format: int64
-              minimum: 0
+        - $ref: '#/components/schemas/ObjId'
         - $ref: '#/components/schemas/AdContent'
       xml:
         name: Ad
@@ -605,14 +769,7 @@ components:
         name: AdData
     Article:
       allOf:
-        - type: object
-          required:
-            - id
-          properties:
-            id:
-              type: integer
-              format: int64
-              minimum: 0
+        - $ref: '#/components/schemas/ObjId'
         - $ref: '#/components/schemas/ArticleContent'
       xml:
         name: Article
@@ -625,6 +782,10 @@ components:
           type: integer
           format: int64
           nullable: true
+        createdBy:
+          type: integer
+          format: int64
+          readOnly: true
         created:
           type: string
           format: date-time
@@ -638,12 +799,32 @@ components:
           format: float
         customerRating:
           type: number
+          format: float
+          readOnly: true
+          minimum: 0
+          maximum: 1
+        customerRatingPositive:
+          type: integer
           format: int32
+          readOnly: true
+          minimum: 0
+        customerRatingNegative:
+          type: integer
+          format: int32
+          readOnly: true
+          minimum: 0
       xml:
         name: ArticleData
     Image:
-      type: object
       description: Information about an image
+      allOf:
+        - $ref: '#/components/schemas/ObjId'
+        - $ref: '#/components/schemas/ImageMetas'
+      xml:
+        name: Image
+    ImageMetas:
+      type: object
+      description: Short metas/infos about image (for use in others paths or schemas)
       properties:
         height:
           type: integer
@@ -653,16 +834,11 @@ components:
           type: integer
           format: int32
           minimum: 0
+      xml:
+        name: ImageMeta
     Partner:
       allOf:
-        - type: object
-          required:
-            - id
-          properties:
-            id:
-              type: integer
-              format: int64
-              minimum: 0
+        - $ref: '#/components/schemas/ObjId'
         - $ref: '#/components/schemas/PartnerContent'
       xml:
         name: Partner
@@ -681,14 +857,7 @@ components:
         name: PartnerData
     User:
       allOf:
-        - type: object
-          required:
-            - id
-          properties:
-            id:
-              type: integer
-              format: int64
-              minimum: 0
+        - $ref: '#/components/schemas/ObjId'
         - $ref: '#/components/schemas/UserContent'
       xml:
         name: User
@@ -708,20 +877,44 @@ components:
   responses:
     '204':
       description: Entity deleted
+      content:
+        application/json: {}
+        application/xml: {}
     '304':
       description: Entity not modified
+      content:
+        application/json: {}
+        application/xml: {}
     '400':
       description: Illegal input for operation
+      content:
+        application/json: {}
+        application/xml: {}
     '401':
       description: Authentication required for access this resource
+      content:
+        application/json: {}
+        application/xml: {}
     '403':
       description: Privileges access refused
+      content:
+        application/json: {}
+        application/xml: {}
     '404':
       description: Entity not found
+      content:
+        application/json: {}
+        application/xml: {}
     '406':
       description: Illegal input for operation
+      content:
+        application/json: {}
+        application/xml: {}
     '409':
       description: Entity conflicts with operation
+      content:
+        application/json: {}
+        application/xml: {}
   parameters:
     id:
       name: id
