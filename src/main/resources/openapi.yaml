@@ -5,18 +5,18 @@ servers: []
   #  variables: {}
 info:
   description: >-
-    For this sample, you can use the api key `special-key` to test the
-    authorization filters.
-  version: 1.0.0
-  title: Swagger Petstore
+    Contrat de l'API du projet ESGI-Ideal.
+    Exposé avec Vert.X et consommé par un site web et une application mobile.
+  version: 1.4.0
+  title: Ideal OpenAPI
   termsOfService: 'https://esgi-ideal.github.io/terms/'
   contact:
     email: todo@reseau-ges.fr
     name: IDeal Shop Support
     url: 'https://esgi-ideal.github.io/support/'
   license:
-    name: CC BY-SA 4.0
-    url: 'https://creativecommons.org/licenses/by/4.0/'
+    name: Unknow
+    url: 'https://esgi-ideal.github.io/license/'
 tags:
   - name: article
     description: Everything about your articles
