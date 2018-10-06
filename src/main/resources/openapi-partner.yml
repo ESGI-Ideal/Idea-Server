@@ -13,6 +13,7 @@ paths:
                   type: array
                   items:
                     $ref: '#/components/schemas/Partner'
+                  uniqueItems: true
       tags:
         - partner
     #put:
@@ -33,6 +34,11 @@ paths:
       responses:
         '201':
           description: 'Create'
+      tags:
+        - partner
+      security:
+        - OAuth2:
+            - admin
   /partner/{id}:
     get:
       summary: informations on an partner
@@ -69,19 +75,15 @@ paths:
           description: Partner's ID not exist
       tags:
         - partner
+      security:
+        - OAuth2:
+            - admin
 
 components:
   schemas:
     Partner:
       allOf:
-        - type: object
-          required:
-            - id
-          properties:
-            id:
-              type: integer
-              format: int64
-              minimum: 0
+        - $ref: '#/components/schemas/ObjId'
         - $ref: '#/components/schemas/PartnerContent'
       xml:
         name: Partner

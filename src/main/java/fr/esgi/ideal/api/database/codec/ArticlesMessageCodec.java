@@ -11,7 +11,8 @@ public class ArticlesMessageCodec extends AbstractMessageCodec<Articles> {
 
     @Override
     Articles decodeFromWire(final JsonObject json) {
-        return new Articles(json.getLong("id"), json.getString("name"), json.getLong("image"), json.getString("description"),
-                      null/*price*/, null/*created*/, null/*updated*/, json.getLong("rate"));
+        return json.mapTo(Articles.class);
+        //return new Articles(json.getLong("id"), json.getString("name"), json.getLong("image"), json.getString("description"),
+        //              null/*price*/, null/*created*/, null/*updated*/, json.getLong("rate"));
     }
 }

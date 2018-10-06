@@ -7,6 +7,8 @@ import fr.esgi.ideal.api.ApiImage;
 import fr.esgi.ideal.api.ApiPartner;
 import fr.esgi.ideal.api.ApiUser;
 import fr.esgi.ideal.internal.FSIO;
+import fr.esgi.ideal.storage.Storage;
+import fr.esgi.ideal.storage.StorageType;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
@@ -32,10 +34,6 @@ import lombok.extern.slf4j.Slf4j;
 import net.coobird.thumbnailator.util.ThumbnailatorUtils;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.InvalidPathException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.function.BiConsumer;
@@ -45,34 +43,37 @@ import java.util.stream.Stream;
 @Slf4j
 public class ApiRestVerticle extends AbstractVerticle {
     private HttpServer httpServer;
-    private Path assets;
+    private Storage storage;
 
     @Override
     public void start(@NonNull final Future<Void> startFuture) throws Exception {
         log.debug("Starting verticle ...");
         log.debug("config() = {}", this.config().encodePrettily());
         this.start();
-        this.assets = Paths.get(this.config().getString("assets_dir", "./ideal-assets"));
-        if(Files.notExists(this.assets))
-            Files.createDirectory(this.assets.toAbsolutePath());
-        else
-            if(!Files.isDirectory(this.assets)) throw new InvalidPathException(this.assets.toString(), "The assets path is not an directory");
-        if(!Files.isReadable(this.assets) || !Files.isWritable(this.assets)) throw new InvalidPathException(this.assets.toString(), "Haven't right acces to assets directory");
         log.debug("Thumbnailator supported output formats : {}", String.join(", ", ThumbnailatorUtils.getSupportedOutputFormats()));
-        this.start_getOpenApiCotroller()
+        this.init_storage()
+            .compose(this::start_getOpenApiCotroller)
             .compose(this::start_server)
             .compose(x -> {
                 this.httpServer = x;
                 return Future.<Void>succeededFuture();
             })
-            .setHandler(startFuture);
+            //.mapEmpty()
+            //.map(this::init_storage)
+            .setHandler(startFuture.completer());
         log.debug("Starting complete");
     }
 
     @Override
     public void stop(@NonNull final Future<Void> stopFuture) throws Exception {
         log.debug("Stopping verticle");
-        this.httpServer.close(stopFuture.completer());
+        final Future<Void> fSrv = Future.future();
+        this.httpServer.close(fSrv);
+        fSrv.compose(v->{final Future<Void> next = Future.future(); this.storage.close(next); return next;})
+            .setHandler(stopFuture);
+        /*final Future<Void> fStr = Future.future();
+        this.storage.close(fStr);
+        //((Future)CompositeFuture.join(fSrv, fStr)).setHandler(stopFuture.completer());*/
     }
 
     private Future<HttpServer> start_server(@NonNull final Router OAPI3Router) {
@@ -111,7 +112,20 @@ public class ApiRestVerticle extends AbstractVerticle {
         return future;
     }
 
-    private Future<Router> start_getOpenApiCotroller() {
+    private Future<Void> init_storage() {
+        final JsonObject conf = this.config().getJsonObject("storage");
+        try {
+            final StorageType type = StorageType.valueOf(conf.getString("type"));
+            this.storage = type.getNewInstance().get();
+            final Future<Void> future = Future.future();
+            this.storage.init(this.vertx, conf.getJsonObject("params", new JsonObject()), future);
+            return future;
+        } catch (final RuntimeException r) {
+            return Future.failedFuture(r);
+        }
+    }
+
+    private Future<Router> start_getOpenApiCotroller(final Void nop) {
         final Future<Router> future = Future.future();
         try {
             OpenAPI3RouterFactory.create(vertx, FSIO.getResourceAsExternal("openapi_bundle.yaml").toString(), ar -> future.handle(ar.map(routerFactory -> {
@@ -151,7 +165,7 @@ public class ApiRestVerticle extends AbstractVerticle {
                             ApiRestVerticle::addHandleAd)
                             .forEach(fnAdd -> fnAdd.accept(this.vertx.eventBus(), routerFactory));
                     addHandleRoot(routerFactory);
-                    addHandleImage(this.vertx, this.vertx.eventBus(), routerFactory);
+                    addHandleImage(this.vertx, this.vertx.eventBus(), routerFactory, this.storage);
                     //part_auth(routerFactory);
                     //routerFactory.addHandlerByOperationId("doSearch", routingContext -> {}); //TODO
                 }
@@ -187,6 +201,8 @@ public class ApiRestVerticle extends AbstractVerticle {
         routerFactory.addHandlerByOperationId("deleteArticle", api::delete);
         routerFactory.addHandlerByOperationId("newArticle", api::create);
         routerFactory.addHandlerByOperationId("doSearch", api::searchArticle);
+        routerFactory.addHandlerByOperationId("articleVote", api::voteArticle);
+        routerFactory.addHandlerByOperationId("articleUnvote", api::unvoteArticle);
     }
 
     private static void addHandleUser(@NonNull final EventBus eventBus, @NonNull final OpenAPI3RouterFactory routerFactory) {
@@ -196,7 +212,10 @@ public class ApiRestVerticle extends AbstractVerticle {
         routerFactory.addHandlerByOperationId("deleteUser", api::delete);
         routerFactory.addHandlerByOperationId("newUser", api::create);
         routerFactory.addHandlerByOperationId("getUserArticlesCreate", api::getAllArticlesCreate);
-        //getCurrentUser
+        routerFactory.addHandlerByOperationId("getCurrentUser", api::getUserInfo);
+        routerFactory.addHandlerByOperationId("getCurrentUserFavorites", api::getUserFavorites);
+        routerFactory.addHandlerByOperationId("addArticleCurrentUserFavorites", api::addUserFavorite);
+        routerFactory.addHandlerByOperationId("deleteArticleCurrentUserFavorites", api::deleteUserFavorite);
         final ApiAuth auth = new ApiAuth(eventBus);
         /*routerFactory.addSecurityHandler("OAuth2", new AuthHandler() {
             @Override
@@ -244,8 +263,8 @@ public class ApiRestVerticle extends AbstractVerticle {
         routerFactory.addHandlerByOperationId("newAd", api::create);
     }
 
-    private static void addHandleImage(@NonNull final Vertx vertx, @NonNull final EventBus eventBus, @NonNull final OpenAPI3RouterFactory routerFactory) {
-        final ApiImage api = new ApiImage(vertx, eventBus);
+    private static void addHandleImage(@NonNull final Vertx vertx, @NonNull final EventBus eventBus, @NonNull final OpenAPI3RouterFactory routerFactory, @NonNull final Storage storage) {
+        final ApiImage api = new ApiImage(vertx, eventBus, storage);
         routerFactory.addHandlerByOperationId("getImages", api::getAll);
         routerFactory.addHandlerByOperationId("newImage", api::upload);
         routerFactory.addHandlerByOperationId("getImageMetadata", api::get);

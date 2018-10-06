@@ -13,6 +13,7 @@ paths:
                   type: array
                   items:
                     $ref: '#/components/schemas/User'
+                  uniqueItems: true
       tags:
         - user
     #put:
@@ -33,6 +34,8 @@ paths:
       responses:
         '201':
           description: 'Create'
+      tags:
+        - user
   /user/{id}:
     get:
       summary: informations on an user
@@ -72,6 +75,9 @@ paths:
           description: User's ID not exist
       tags:
         - user
+      security:
+        - OAuth2:
+            - admin
   /user/{id}/sells:
     get:
       summary: articles selling by an user
@@ -89,6 +95,7 @@ paths:
                 items:
                   type: integer
                   format: int64
+                uniqueItems: true
         default:
           description: User's ID not exist
       tags:
@@ -105,6 +112,71 @@ paths:
             - user
             - admin
       responses:
+        '200':
+          description: user's data summary
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/User'
+                  - type: object
+                    properties:
+                      favorites:
+                        type: integer
+                        format: int32
+                    additionalProperties: true  #this endpoint isn't yet stable
+        default:
+          description: ''
+      tags:
+        - user
+  /user/me/favs:
+    get:
+      summary: articles in favorite
+      operationId: getCurrentUserFavorites
+      security:
+        - OAuth2:
+            - user
+      responses:
+        200:
+          description: articles in favorites
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Article'
+                uniqueItems: true
+        default:
+          description: ''
+      tags:
+        - user
+  /user/me/favs/{id}:
+    put:
+      summary: mark an article in favorite
+      operationId: addArticleCurrentUserFavorites
+      parameters:
+        - $ref: '#/components/parameters/id'
+      security:
+        - OAuth2:
+          - user
+      responses:
+        201:
+          description: article add in favorites
+        default:
+          description: ''
+      tags:
+        - user
+    delete:
+      summary: remove an article from favorites
+      operationId: deleteArticleCurrentUserFavorites
+      parameters:
+        - $ref: '#/components/parameters/id'
+      security:
+        - OAuth2:
+          - user
+      responses:
+        204:
+          description: article remove from favorites
         default:
           description: ''
       tags:
@@ -114,14 +186,7 @@ components:
   schemas:
     User:
       allOf:
-        - type: object
-          required:
-            - id
-          properties:
-            id:
-              type: integer
-              format: int64
-              minimum: 0
+        - $ref: '#/components/schemas/ObjId'
         - $ref: '#/components/schemas/UserContent'
       xml:
         name: User

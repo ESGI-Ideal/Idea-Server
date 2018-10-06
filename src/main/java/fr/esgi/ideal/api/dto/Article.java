@@ -26,6 +26,11 @@ public class Article {
     private OffsetDateTime created, updated; // RFC3339/ISO8601
 
     /**
+     * Id of the user creating this article
+     */
+    private Long createBy;
+
+    /**
      * Description of article
      */
     private String description;
@@ -42,7 +47,8 @@ public class Article {
     private Long img;
 
     /**
-     * Rate satisfaction for the product by customers
+     * Rate (ratio) satisfaction for the product by customers
      */
-    private Integer customerRating;
+    private Float customerRating;
+    private Integer customerRatingPositive, customerRatingNegative;
 }

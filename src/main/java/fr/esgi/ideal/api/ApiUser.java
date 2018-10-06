@@ -1,12 +1,15 @@
 package fr.esgi.ideal.api;
 
 import fr.esgi.ideal.DatabaseVerticle;
+import fr.esgi.ideal.api.dto.Article;
 import fr.esgi.ideal.api.dto.DbConverter;
 import fr.esgi.ideal.api.dto.User;
+import fr.esgi.ideal.dao.tables.pojos.Articles;
 import fr.esgi.ideal.dao.tables.pojos.Users;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.core.Future;
 import io.vertx.core.eventbus.EventBus;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.api.RequestParameters;
@@ -100,10 +103,58 @@ public class ApiUser implements SubApiAlter<Users, User> {
         if(id.isPresent()) {
             this.eventBus.<Set<Long>>send(DatabaseVerticle.DB_USER_GET_ARTICLES_CREATE, id, asyncMsg -> {
                 if(asyncMsg.succeeded())
-                    RouteUtils.send(routingContext, HttpResponseStatus.OK, asyncMsg.result());
+                    RouteUtils.send(routingContext, HttpResponseStatus.OK, asyncMsg.result().body());
                 else
                     RouteUtils.error(routingContext, "An error occur on the server");
                 });
+        } else
+            RouteUtils.error(routingContext, "The Id passed is null");
+    }
+
+    public void getUserInfo(@NonNull final RoutingContext routingContext) {
+        this.eventBus.<JsonObject>send(DatabaseVerticle.DB_USER_GET_INFOS, routingContext.user().principal().getLong("id"), asyncMsg -> {
+            if(asyncMsg.succeeded())
+                RouteUtils.send(routingContext, HttpResponseStatus.OK, asyncMsg.result().body());
+            else
+                RouteUtils.error(routingContext, "An error occur on the server");
+        });
+    }
+
+    public void getUserFavorites(@NonNull final RoutingContext routingContext) {
+        this.eventBus.<List<Articles>>send(DatabaseVerticle.DB_USER_GET_ARTICLES_FAVORITES, routingContext.user().principal().getLong("id"), asyncMsg -> {
+            if(asyncMsg.succeeded())
+                RouteUtils.send(routingContext, HttpResponseStatus.OK, asyncMsg.result().body().parallelStream().map(DbConverter::toAPI).toArray(Article[]::new));
+            else
+                RouteUtils.error(routingContext, "An error occur on the server");
+        });
+    }
+
+    public void addUserFavorite(@NonNull final RoutingContext routingContext) {
+        final Optional<Long> id = Optional.ofNullable(((RequestParameters) routingContext.get("parsedParameters")).pathParameter("id").getLong());
+        if(id.isPresent()) {
+            this.eventBus.<Void>send(DatabaseVerticle.DB_USER_ADD_ARTICLE_FAVORITES,
+                                     new JsonObject().put("article", id).put("user", routingContext.user().principal().getLong("id")),
+                                     asyncMsg -> {
+                if(asyncMsg.succeeded())
+                    RouteUtils.send(routingContext, HttpResponseStatus.CREATED, null);
+                else
+                    RouteUtils.error(routingContext, "An error occur on the server");
+            });
+        } else
+            RouteUtils.error(routingContext, "The Id passed is null");
+    }
+
+    public void deleteUserFavorite(@NonNull final RoutingContext routingContext) {
+        final Optional<Long> id = Optional.ofNullable(((RequestParameters) routingContext.get("parsedParameters")).pathParameter("id").getLong());
+        if(id.isPresent()) {
+            this.eventBus.<Void>send(DatabaseVerticle.DB_USER_DELETE_ARTICLE_FAVORITES,
+                    new JsonObject().put("article", id).put("user", routingContext.user().principal().getLong("id")),
+                    asyncMsg -> {
+                        if(asyncMsg.succeeded())
+                            RouteUtils.send(routingContext, HttpResponseStatus.NO_CONTENT, null);
+                        else
+                            RouteUtils.error(routingContext, "An error occur on the server");
+                    });
         } else
             RouteUtils.error(routingContext, "The Id passed is null");
     }

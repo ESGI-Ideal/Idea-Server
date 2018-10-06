@@ -5,6 +5,9 @@ import fr.esgi.ideal.api.dto.DbConverter;
 import fr.esgi.ideal.api.dto.Image;
 import fr.esgi.ideal.internal.FSIO;
 import fr.esgi.ideal.dao.tables.pojos.Images;
+import fr.esgi.ideal.storage.LocalStorage;
+import fr.esgi.ideal.storage.Storage;
+import fr.esgi.ideal.storage.TypeObject;
 import io.vertx.core.Future;
 import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
@@ -19,6 +22,7 @@ import io.vertx.core.streams.Pump;
 import io.vertx.ext.web.FileUpload;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.api.RequestParameters;
 import io.vertx.ext.web.handler.BodyHandler;
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
@@ -43,6 +47,7 @@ import java.util.UUID;
 public class ApiImage implements SubApi<Images, Image> {
     private final Vertx vertx;
     private final EventBus eventBus;
+    private final Storage storage;
     //private ImageManager imgManager;
     private final Path noimg = getNoImg();
     private static Path getNoImg() {
@@ -105,9 +110,22 @@ public class ApiImage implements SubApi<Images, Image> {
         return future;
     }
 
-    public void getFile(@NonNull final RoutingContext routingContext) { routingContext.response().sendFile(this.noimg.toString()); }
+    public void getFile(@NonNull final RoutingContext routingContext) {
+        final long id = ((RequestParameters) routingContext.get("parsedParameters")).pathParameter("id").getLong();
+        final String path = ((LocalStorage)this.storage).generatePath(TypeObject.Image, id);
+        this.vertx.fileSystem().exists(path, res -> {
+            if(res.succeeded())
+                routingContext.response().putHeader("Content-Type", "image/jpg").sendFile(res.result() ? path : this.noimg.toString());
+            else
+                RouteUtils.error(routingContext, res.cause().toString());
+        });
+    }
     public void getThumb(@NonNull final RoutingContext routingContext){} //TODO
-    public void upload(@NonNull final RoutingContext routingContext){webupload(routingContext);} //TODO
+
+    public void upload(@NonNull final RoutingContext routingContext){
+        final long id = ((RequestParameters) routingContext.get("parsedParameters")).pathParameter("id").getLong();
+        this.storage.upload(id, TypeObject.Image, routingContext.request().getHeader("content-type"), routingContext.request());
+    }
 
     public void temp() throws NoSuchAlgorithmException {
         MessageDigest digest = MessageDigest.getInstance("SHA-256");

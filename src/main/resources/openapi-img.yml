@@ -13,6 +13,9 @@ paths:
                   type: array
                   items:
                     $ref: '#/components/schemas/Image'
+                  uniqueItems: true
+      tags:
+        - image
     post:
       summary: 'Upload une nouvelle image'
       description: ''
@@ -49,6 +52,11 @@ paths:
                   type: array
                   items:
                     $ref: '#/components/schemas/Image'
+      tags:
+        - image
+      security:
+        - OAuth2:
+            - user
   /image/{id}:
     parameters:
       - $ref: '#/components/parameters/id'
@@ -62,7 +70,11 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Image'
+                $ref: '#/components/schemas/ImageMetas'
+        404:
+          description: 'Not found'
+      tags:
+        - image
     delete:
       summary: 'Supprime une image'
       description: ''
@@ -70,9 +82,14 @@ paths:
       responses:
         200:
           description: 'OK'
+      tags:
+        - image
+      security:
+        - OAuth2:
+            - user
   /image/{id}/file:
     get:
-      summary: 'Récupère l.image (données binaires)'
+      summary: "Récupère l'image (données binaires)"
       description: ''
       operationId: getImageFile
       parameters:
@@ -81,15 +98,17 @@ paths:
         200:
           description: 'OK'
           content:
-            image/jpg:
+            image/*:
               schema:
                 type: string
                 format: binary
         404:
           description: 'Not found'
+      tags:
+        - image
   /image/{id}/thumb:
     get:
-      summary: 'Génère une miniature de l.image (données binaires)'
+      summary: "Génère une miniature de l'image (données binaires)"
       description: ''
       operationId: getImageThumb
       parameters:
@@ -116,8 +135,15 @@ paths:
 components:
   schemas:
     Image:
-      type: object
       description: Information about an image
+      allOf:
+        - $ref: '#/components/schemas/ObjId'
+        - $ref: '#/components/schemas/ImageMetas'
+      xml:
+        name: Image
+    ImageMetas:
+      type: object
+      description: Short metas/infos about image (for use in others paths or schemas)
       properties:
         height:
           type: integer
@@ -127,3 +153,5 @@ components:
           type: integer
           format: int32
           minimum: 0
+      xml:
+        name: ImageMeta

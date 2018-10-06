@@ -19,7 +19,9 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.OptionalLong;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -135,6 +137,42 @@ public class ApiArticle implements SubApiAlter<Articles, Article> {
                     RouteUtils.error(routingContext, "An error occur on the server (phase 1)");
             });
         } else
+            RouteUtils.error(routingContext, "The Id passed is null");
+    }
+
+    public void voteArticle(@NonNull final RoutingContext routingContext) {
+        final Optional<Long> id = Optional.ofNullable(((RequestParameters) routingContext.get("parsedParameters")).pathParameter("id"))
+                .map(RequestParameter::getLong);
+        final Optional<Boolean> value = Optional.ofNullable(((RequestParameters) routingContext.get("parsedParameters")).body())
+                .map(RequestParameter::getBoolean);
+        if(id.isPresent() && value.isPresent())
+            this.eventBus.<Void>send(DatabaseVerticle.DB_ARTICLE_VOTE,
+                                     new JsonObject().put("articleId", id).put("userId", routingContext.user().principal().getLong("id")).put("like", value),
+                                     asyncMsg -> {
+                if(asyncMsg.succeeded())
+                    RouteUtils.send(routingContext, HttpResponseStatus.OK, null);
+                else {
+                    log.error("Get error from bus resquest", asyncMsg.cause());
+                    RouteUtils.error(routingContext, "An error occur on the server");
+                }
+            });
+        else
+            RouteUtils.error(routingContext, "The Id passed is null");
+    }
+
+    public void unvoteArticle(@NonNull final RoutingContext routingContext) {
+        final Optional<Long> id = Optional.ofNullable(((RequestParameters) routingContext.get("parsedParameters")).pathParameter("id"))
+                                          .map(RequestParameter::getLong);
+        if(id.isPresent())
+            this.eventBus.<Void>send(DatabaseVerticle.DB_ARTICLE_UNVOTE, new JsonObject().put("articleId", id).put("userId", routingContext.user().principal().getLong("id")), asyncMsg -> {
+                if(asyncMsg.succeeded())
+                    RouteUtils.send(routingContext, HttpResponseStatus.OK, null);
+                else {
+                    log.error("Get error from bus resquest", asyncMsg.cause());
+                    RouteUtils.error(routingContext, "An error occur on the server");
+                }
+            });
+        else
             RouteUtils.error(routingContext, "The Id passed is null");
     }
 

@@ -20,4 +20,19 @@
         <modifyDataType tableName="articles_data" columnName="updated" newDataType="TIMESTAMP WITH TIME ZONE" />
         <modifyDataType tableName="users" columnName="created" newDataType="TIMESTAMP WITH TIME ZONE" />
     </changeSet>-->
+
+    <changeSet id="08" author="Tristan">
+        <comment>Correction of method for getting articles' rate</comment>
+        <!--DatabaseException: dependent objects exist: PUBLIC.ARTICLES in statement [ALTER TABLE articles_data ALTER COLUMN image BIGINT]-->
+        <createView viewName="articles" replaceIfExists="true"><![CDATA[select articles_data.*, sum(case when adore then 1 else 0 end) as rate_positive, sum(case when adore then 0 else 1 end) as rate_negative from articles_data left join articles_rates on id=article group by id]]></createView>
+    </changeSet>
+
+    <changeSet id="09" author="Tristan">
+        <comment>Add favorites of a user</comment>
+        <createTable tableName="users_favorites" remarks="Favorites of a user">
+            <column name="userId" type="bigint"><constraints nullable="false" primaryKey="true" referencedTableName="users" referencedColumnNames="id" foreignKeyName="users_favorites_users_id"/></column>
+            <column name="articleId" type="bigint"><constraints nullable="false" primaryKey="true" referencedTableName="articles_data" referencedColumnNames="id" foreignKeyName="users_favorites_articles_data_id"/></column>
+        </createTable>
+        <!--<createView viewName="users_summary"><![CDATA[select users.*, count(*) as favorites from users left join users_favorites on id=userId group by id]]></createView>-->
+    </changeSet>
 </databaseChangeLog>
