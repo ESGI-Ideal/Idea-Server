@@ -1,7 +1,6 @@
 package fr.esgi.ideal.storage;
 
 import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.Getter;
 
 @AllArgsConstructor

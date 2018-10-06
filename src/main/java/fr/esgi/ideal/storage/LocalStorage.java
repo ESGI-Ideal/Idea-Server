@@ -4,7 +4,6 @@ import afu.org.apache.commons.lang3.tuple.Pair;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.file.AsyncFile;
 import io.vertx.core.file.FileProps;
 import io.vertx.core.file.OpenOptions;
 import io.vertx.core.json.JsonObject;

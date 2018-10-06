@@ -20,7 +20,6 @@ import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.Optional;
-import java.util.OptionalLong;
 
 /**
  * Converter of beans between DB DAO and API DTO

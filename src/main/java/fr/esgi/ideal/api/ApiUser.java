@@ -9,7 +9,6 @@ import fr.esgi.ideal.dao.tables.pojos.Users;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.core.Future;
 import io.vertx.core.eventbus.EventBus;
-import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.api.RequestParameters;

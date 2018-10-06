@@ -6,12 +6,11 @@ import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.json.JsonObject;
-import io.vertx.core.logging.Logger;
-import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.auth.AuthProvider;
 import io.vertx.ext.web.RoutingContext;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 import java.nio.charset.StandardCharsets;
 import java.time.OffsetDateTime;
@@ -24,6 +23,7 @@ import java.util.stream.Collectors;
 /*
  * Based on https://github.com/dazraf/vertx-oauth2-server
  */
+@Slf4j
 @AllArgsConstructor
 public class ApiAuth {
     private final EventBus eventBus;
@@ -53,13 +53,13 @@ public class ApiAuth {
             final String grantType = Optional.ofNullable(context.request().getParam("grant_type")).orElseThrow(NullPointerException::new);
             final String[] scopes = Optional.ofNullable(context.request().getParam("scope")).orElseThrow(NullPointerException::new).split("\\s+");
 
-            final Logger logger = LoggerFactory.getLogger(this.getClass());
-            logger.info("type="+ grantType);
-            logger.info("name="+ userName);
-            logger.info("psw="+ userPsw);
-            logger.info("id="+ clientID);
-            logger.info("sct="+ clientSecret);
-            logger.info("scopes='"+ Arrays.toString(scopes) +"'");
+            //final Logger log = LoggerFactory.getLogger(this.getClass());
+            log.info("type="+ grantType);
+            log.info("name="+ userName);
+            log.info("psw="+ userPsw);
+            log.info("id="+ clientID);
+            log.info("sct="+ clientSecret);
+            log.info("scopes='"+ Arrays.toString(scopes) +"'");
 
             switch(grantType) {
                 case "password":
@@ -95,7 +95,7 @@ public class ApiAuth {
         }
     }
 
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
+    //private final Logger log = LoggerFactory.getLogger(this.getClass());
 
     private final static String KEY_TOKEN_LIMIT = "token_limit";
 
@@ -104,7 +104,7 @@ public class ApiAuth {
         if((raw != null) && raw.startsWith("Bearer ")) {
             final String tokenDecode = new String(Base64.getDecoder().decode(raw.split(" ")[1]));
             final String[] tokenRaw = tokenDecode.split(" ");
-            logger.info("token: "+Arrays.toString(tokenRaw));
+            log.info("token: "+Arrays.toString(tokenRaw));
             //routingContext.setUser(this.accounts.get(tokenRaw[0]));
             routingContext.setUser(tmp);
             //TODO routingContext.data().put(KEY_TOKEN_LIMIT, new Date(tokenRaw[1]));
