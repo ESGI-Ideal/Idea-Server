@@ -34,6 +34,11 @@ paths:
       responses:
         '201':
           description: 'Create'
+      tags:
+        - article
+      security:
+        - OAuth2:
+            - user
   /article/{id}:
     get:
       summary: informations on an article
@@ -70,6 +75,9 @@ paths:
           description: Article's ID not exist
       tags:
         - article
+      security:
+        - OAuth2:
+            - user
   /article/{id}/like:
     post:
       description: 'Vote of a user on an article'

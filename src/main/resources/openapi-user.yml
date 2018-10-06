@@ -75,6 +75,9 @@ paths:
           description: User's ID not exist
       tags:
         - user
+      security:
+        - OAuth2:
+            - admin
   /user/{id}/sells:
     get:
       summary: articles selling by an user

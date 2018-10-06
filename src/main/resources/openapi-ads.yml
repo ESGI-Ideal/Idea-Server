@@ -40,6 +40,9 @@ paths:
           description: 'Created'
       tags:
         - ads
+      security:
+        - OAuth2:
+            - admin
   /ad/{id}:
     get:
       summary: informations on an ad
@@ -76,6 +79,9 @@ paths:
           description: Ad's ID not exist
       tags:
         - ads
+      security:
+        - OAuth2:
+            - admin
 
 components:
   schemas:

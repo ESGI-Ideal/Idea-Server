@@ -36,6 +36,9 @@ paths:
           description: 'Create'
       tags:
         - partner
+      security:
+        - OAuth2:
+            - admin
   /partner/{id}:
     get:
       summary: informations on an partner
@@ -72,6 +75,9 @@ paths:
           description: Partner's ID not exist
       tags:
         - partner
+      security:
+        - OAuth2:
+            - admin
 
 components:
   schemas:

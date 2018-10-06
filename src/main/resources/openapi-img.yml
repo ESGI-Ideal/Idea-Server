@@ -54,6 +54,9 @@ paths:
                     $ref: '#/components/schemas/Image'
       tags:
         - image
+      security:
+        - OAuth2:
+            - user
   /image/{id}:
     parameters:
       - $ref: '#/components/parameters/id'
@@ -81,6 +84,9 @@ paths:
           description: 'OK'
       tags:
         - image
+      security:
+        - OAuth2:
+            - user
   /image/{id}/file:
     get:
       summary: "Récupère l'image (données binaires)"
