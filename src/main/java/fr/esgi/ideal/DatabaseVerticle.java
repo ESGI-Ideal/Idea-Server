@@ -243,16 +243,16 @@ public class DatabaseVerticle extends AbstractVerticle {
                                                                                 .parallelStream().mapToLong(ArticlesData::getId).toArray()));
         //select users.*, count(*) as favorites from users left join users_favorites on id=userId group by id
         this.vertx.eventBus().<Long>consumer(DB_USER_GET_INFOS,
-                                             msg -> execSqlRaw(msg, dsl -> new JsonObject(dsl.select(USERS.asterisk(), DSL.count()/*.over()*/.as("favorites"))
-                                                                                             .from(USERS).leftJoin(USERS_FAVORITES).on(USERS.ID.eq(USERS_FAVORITES.USERID))
+                                             msg -> execSqlRaw(msg, dsl -> new JsonObject(dsl.select(USERS.asterisk(), DSL.selectCount().from(USERS_FAVORITES).where(USERS_FAVORITES.USERID.eq(USERS.ID))/*.over()*/.asField("favorites"))
+                                                                                             .from(USERS)
                                                                                              .where(USERS.ID.eq(msg.body()))
                                                                                              .groupBy(USERS.ID)
                                                                                              .fetchOneMap())));
         this.vertx.eventBus().<Long>consumer(DB_USER_GET_ARTICLES_FAVORITES,
-                                             msg -> execSqlRaw(msg, dsl -> dsl.select(ARTICLES.asterisk())
-                                                                              .from(USERS_FAVORITES).leftJoin(ARTICLES).on(USERS_FAVORITES.ARTICLEID.eq(ARTICLES.ID))
-                                                                              .where(USERS_FAVORITES.USERID.eq(msg.body()))
-                                                                              .fetchInto(Articles.class)));
+                                             msg -> execSqlCodec(msg, ArticlesListMessageCodec.class, dsl -> dsl.select(ARTICLES.asterisk())
+                                                                                                                 .from(USERS_FAVORITES).leftJoin(ARTICLES).on(USERS_FAVORITES.ARTICLEID.eq(ARTICLES.ID))
+                                                                                                                 .where(USERS_FAVORITES.USERID.eq(msg.body()))
+                                                                                                                 .fetchInto(Articles.class)));
         this.vertx.eventBus().<JsonObject>consumer(DB_USER_DELETE_ARTICLE_FAVORITES,
                                                    msg -> execSqlNoReturn(msg, dsl -> new UsersFavoritesDao(dsl.configuration())
                                                            .deleteById(new UsersFavoritesRecord(msg.body().getLong("user"),
