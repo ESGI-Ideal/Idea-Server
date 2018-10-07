@@ -7,7 +7,7 @@ info:
   description: >-
     Contrat de l'API du projet ESGI-Ideal.
     Exposé avec Vert.X et consommé par un site web et une application mobile.
-  version: 1.5.4
+  version: 1.5.5
   title: Ideal OpenAPI
   termsOfService: 'https://esgi-ideal.github.io/terms/'
   contact:

@@ -43,4 +43,10 @@
             <!--bool: pseudo-->
         </addColumn>
     </changeSet>
+
+    <changeSet id="11-fixing-rates-count" author="Tristan">
+        <comment>Fix for getting articles' rate</comment>
+        <!--DatabaseException: dependent objects exist: PUBLIC.ARTICLES in statement [ALTER TABLE articles_data ALTER COLUMN image BIGINT]-->
+        <createView viewName="articles" replaceIfExists="true"><![CDATA[select articles_data.*, sum(case adore when true then 1 else 0 end) as rate_positive, sum(case adore when false then 1 else 0 end) as rate_negative from articles_data left join articles_rates on id=article group by id]]></createView>
+    </changeSet>
 </databaseChangeLog>
