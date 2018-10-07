@@ -3,6 +3,7 @@ package fr.esgi.ideal.api;
 import fr.esgi.ideal.DatabaseVerticle;
 import fr.esgi.ideal.api.dto.Article;
 import fr.esgi.ideal.api.dto.DbConverter;
+import fr.esgi.ideal.api.dto.User;
 import fr.esgi.ideal.dao.tables.pojos.Articles;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.core.Future;
@@ -145,7 +146,7 @@ public class ApiArticle implements SubApiAlter<Articles, Article> {
                 .map(RequestParameter::getBoolean);
         if(id.isPresent() && value.isPresent())
             this.eventBus.<Void>send(DatabaseVerticle.DB_ARTICLE_VOTE,
-                                     new JsonObject().put("articleId", id).put("userId", routingContext.user().principal().getLong("id")).put("like", value),
+                                     new JsonObject().put("articleId", id).put("userId", ((User)routingContext.user()).getId()).put("like", value),
                                      asyncMsg -> {
                 if(asyncMsg.succeeded())
                     RouteUtils.send(routingContext, HttpResponseStatus.OK, null);
@@ -162,7 +163,7 @@ public class ApiArticle implements SubApiAlter<Articles, Article> {
         final Optional<Long> id = Optional.ofNullable(((RequestParameters) routingContext.get("parsedParameters")).pathParameter("id"))
                                           .map(RequestParameter::getLong);
         if(id.isPresent())
-            this.eventBus.<Void>send(DatabaseVerticle.DB_ARTICLE_UNVOTE, new JsonObject().put("articleId", id).put("userId", routingContext.user().principal().getLong("id")), asyncMsg -> {
+            this.eventBus.<Void>send(DatabaseVerticle.DB_ARTICLE_UNVOTE, new JsonObject().put("articleId", id).put("userId", ((User)routingContext.user()).getId()), asyncMsg -> {
                 if(asyncMsg.succeeded())
                     RouteUtils.send(routingContext, HttpResponseStatus.OK, null);
                 else {

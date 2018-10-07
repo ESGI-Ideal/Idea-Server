@@ -96,8 +96,9 @@ public class DatabaseVerticle extends AbstractVerticle {
     public static final String DB_PARTNER_CREATE = "ApiDatabase_Partner_Create";
     public static final String DB_USER_GET_ALL = "ApiDatabase_User_GetAll";
     public static final String DB_USER_GET_BY_ID = "ApiDatabase_User_GetById";
-    public static final String DB_USER_AUTH_BY_NAME = "ApiDatabase_User_AuthByName";
-    public static final String DB_USER_AUTH_USER_EXIST = "ApiDatabase_User_AuthTestUserExist";
+    //public static final String DB_USER_AUTH_BY_NAME = "ApiDatabase_User_AuthByName";
+    //public static final String DB_USER_AUTH_USER_EXIST = "ApiDatabase_User_AuthTestUserExist";
+    public static final String DB_USER_GET_BY_MAIL = "ApiDatabase_User_GetByName";
     public static final String DB_USER_DELETE_BY_ID = "ApiDatabase_User_DeleteById";
     public static final String DB_USER_CREATE = "ApiDatabase_User_Create";
     public static final String DB_USER_GET_ARTICLES_CREATE = "ApiDatabase_User_ArticlesCreate";
@@ -234,20 +235,20 @@ public class DatabaseVerticle extends AbstractVerticle {
         this.vertx.eventBus().<Long>consumer(DB_USER_DELETE_BY_ID,
                                              msg -> execSqlNoReturn(msg, dsl -> new UsersDao(dsl.configuration()).deleteById(msg.body())));
         this.vertx.eventBus().<Users>consumer(DB_USER_CREATE,
-                msg -> execSqlRaw(msg, dsl -> dsl.insertInto(USERS, USERS.MAIL, USERS.ADMIN, USERS.IMAGE, USERS.CREATED)
-                        .values(/*msg.body().getId(),*/ msg.body().getMail(),msg.body().getAdmin(), msg.body().getImage(), msg.body().getCreated())
+                msg -> execSqlRaw(msg, dsl -> dsl.insertInto(USERS, USERS.MAIL, USERS.ADMIN, USERS.IMAGE, USERS.CREATED, USERS.PASSWORD, USERS.RGPD_ACCEPTED)
+                        .values(/*msg.body().getId(),*/ msg.body().getMail(),msg.body().getAdmin(), msg.body().getImage(), msg.body().getCreated(), msg.body().getPassword(), msg.body().getRgpdAccepted())
                         .returning().fetchOne().getId()/*.into(Users.class)*/));
         this.vertx.eventBus().<Long>consumer(DB_USER_GET_ARTICLES_CREATE,
                                              msg -> execSqlRaw(msg, dsl -> new ArticlesDataDao(dsl.configuration()).fetchByCreateby(msg.body())
                                                                                 .parallelStream().mapToLong(ArticlesData::getId).toArray()));
         //select users.*, count(*) as favorites from users left join users_favorites on id=userId group by id
-        this.vertx.eventBus().<Long>consumer(DB_USER_GET_ARTICLES_FAVORITES,
+        this.vertx.eventBus().<Long>consumer(DB_USER_GET_INFOS,
                                              msg -> execSqlRaw(msg, dsl -> new JsonObject(dsl.select(USERS.asterisk(), DSL.count()/*.over()*/.as("favorites"))
                                                                                              .from(USERS).leftJoin(USERS_FAVORITES).on(USERS.ID.eq(USERS_FAVORITES.USERID))
                                                                                              .where(USERS.ID.eq(msg.body()))
                                                                                              .groupBy(USERS.ID)
                                                                                              .fetchOneMap())));
-        this.vertx.eventBus().<Long>consumer(DB_USER_GET_INFOS,
+        this.vertx.eventBus().<Long>consumer(DB_USER_GET_ARTICLES_FAVORITES,
                                              msg -> execSqlRaw(msg, dsl -> dsl.select(ARTICLES.asterisk())
                                                                               .from(USERS_FAVORITES).leftJoin(ARTICLES).on(USERS_FAVORITES.ARTICLEID.eq(ARTICLES.ID))
                                                                               .where(USERS_FAVORITES.USERID.eq(msg.body()))
@@ -260,6 +261,7 @@ public class DatabaseVerticle extends AbstractVerticle {
                                                    msg -> execSqlNoReturn(msg, dsl -> new UsersFavoritesDao(dsl.configuration())
                                                            .insert(new UsersFavorites(msg.body().getLong("user"),
                                                                                       msg.body().getLong("article")))));
+        this.vertx.eventBus().<String>consumer(DB_USER_GET_BY_MAIL, msg -> execSqlRaw(msg, sdl -> new UsersDao(sdl.configuration()).fetchOneByMail(msg.body())));
         /* Ads */
         this.vertx.eventBus().<Void>consumer(DB_AD_GET_ALL,
                                              msg -> execSqlCodec(msg, AdsListMessageCodec.class, dsl -> new AdsDao(dsl.configuration()).findAll()));

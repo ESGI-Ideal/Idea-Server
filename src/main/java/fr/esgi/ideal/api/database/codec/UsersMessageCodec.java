@@ -12,6 +12,7 @@ public class UsersMessageCodec extends AbstractMessageCodec<Users> {
     @Override
     Users decodeFromWire(final JsonObject json) {
         return new Users(json.getLong("id"), json.getLong("image"), json.getString("mail"),
-                         null/*created*/, json.getBoolean("admin"));
+                         null/*created*/, json.getBoolean("admin"), json.getString("password"),
+                         json.getBoolean("rgpdAccepted"));
     }
 }

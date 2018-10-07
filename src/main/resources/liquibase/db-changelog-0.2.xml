@@ -35,4 +35,12 @@
         </createTable>
         <!--<createView viewName="users_summary"><![CDATA[select users.*, count(*) as favorites from users left join users_favorites on id=userId group by id]]></createView>-->
     </changeSet>
+
+    <changeSet id="10-implement-auth" author="Tristan">
+        <addColumn tableName="users">
+            <column name="password" type="varchar(500)" encoding="utf-8"><constraints nullable="true"/></column>
+            <column name="rgpd_accepted" type="boolean" defaultValueBoolean="false"><constraints nullable="false"/></column>
+            <!--bool: pseudo-->
+        </addColumn>
+    </changeSet>
 </databaseChangeLog>

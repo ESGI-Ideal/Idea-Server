@@ -133,6 +133,7 @@ paths:
                     enum: [password]
                 username:
                     type: string
+                    #format: email
                 password:
                     type: string
                     format: password
@@ -145,6 +146,7 @@ paths:
                     type: array
                     items:
                         type: string
+                        enum: [user, admin]
       responses:
         '400':
             description: 'Access token error'

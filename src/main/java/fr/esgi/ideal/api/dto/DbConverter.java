@@ -34,6 +34,8 @@ public class DbConverter {
                     .isAdmin(db.getAdmin())
                     .mail(db.getMail())
                     .img(db.getImage()) //TODO
+                    .rgpdAccepted(db.getRgpdAccepted())
+                    .password(db.getPassword())
                     .build();
             return user;
         } else
@@ -48,6 +50,8 @@ public class DbConverter {
                     .isAdmin(db.getBoolean("isAdmin", false))
                     .mail(db.getString("email"))
                     .img(db.getLong("img")) //TODO
+                    .rgpdAccepted(db.getBoolean("rgpdAccepted", false))
+                    .password(db.getString("password"))
                     .build();
             return user;
         } else
@@ -56,7 +60,7 @@ public class DbConverter {
 
     public static Users toDB(final User api) {
         if(api != null) {
-            final Users user = new Users(api.getId(), api.getImg(), api.getMail(), api.getInscription(), api.isAdmin());
+            final Users user = new Users(api.getId(), api.getImg(), api.getMail(), api.getInscription(), api.isAdmin(), api.getPassword(), api.isRgpdAccepted());
             return user;
         } else
             return null;

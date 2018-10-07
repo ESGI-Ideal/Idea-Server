@@ -111,7 +111,7 @@ public class ApiUser implements SubApiAlter<Users, User> {
     }
 
     public void getUserInfo(@NonNull final RoutingContext routingContext) {
-        this.eventBus.<JsonObject>send(DatabaseVerticle.DB_USER_GET_INFOS, routingContext.user().principal().getLong("id"), asyncMsg -> {
+        this.eventBus.<JsonObject>send(DatabaseVerticle.DB_USER_GET_INFOS, ((User)routingContext.user()).getId(), asyncMsg -> {
             if(asyncMsg.succeeded())
                 RouteUtils.send(routingContext, HttpResponseStatus.OK, asyncMsg.result().body());
             else
@@ -120,7 +120,7 @@ public class ApiUser implements SubApiAlter<Users, User> {
     }
 
     public void getUserFavorites(@NonNull final RoutingContext routingContext) {
-        this.eventBus.<List<Articles>>send(DatabaseVerticle.DB_USER_GET_ARTICLES_FAVORITES, routingContext.user().principal().getLong("id"), asyncMsg -> {
+        this.eventBus.<List<Articles>>send(DatabaseVerticle.DB_USER_GET_ARTICLES_FAVORITES, ((User)routingContext.user()).getId(), asyncMsg -> {
             if(asyncMsg.succeeded())
                 RouteUtils.send(routingContext, HttpResponseStatus.OK, asyncMsg.result().body().parallelStream().map(DbConverter::toAPI).toArray(Article[]::new));
             else
@@ -132,7 +132,7 @@ public class ApiUser implements SubApiAlter<Users, User> {
         final Optional<Long> id = Optional.ofNullable(((RequestParameters) routingContext.get("parsedParameters")).pathParameter("id").getLong());
         if(id.isPresent()) {
             this.eventBus.<Void>send(DatabaseVerticle.DB_USER_ADD_ARTICLE_FAVORITES,
-                                     new JsonObject().put("article", id).put("user", routingContext.user().principal().getLong("id")),
+                                     new JsonObject().put("article", id).put("user", ((User)routingContext.user()).getId()),
                                      asyncMsg -> {
                 if(asyncMsg.succeeded())
                     RouteUtils.send(routingContext, HttpResponseStatus.CREATED, null);
@@ -147,7 +147,7 @@ public class ApiUser implements SubApiAlter<Users, User> {
         final Optional<Long> id = Optional.ofNullable(((RequestParameters) routingContext.get("parsedParameters")).pathParameter("id").getLong());
         if(id.isPresent()) {
             this.eventBus.<Void>send(DatabaseVerticle.DB_USER_DELETE_ARTICLE_FAVORITES,
-                    new JsonObject().put("article", id).put("user", routingContext.user().principal().getLong("id")),
+                    new JsonObject().put("article", id).put("user", ((User)routingContext.user()).getId()),
                     asyncMsg -> {
                         if(asyncMsg.succeeded())
                             RouteUtils.send(routingContext, HttpResponseStatus.NO_CONTENT, null);

@@ -30,6 +30,12 @@ public class User extends AbstractUser {
      */
     private String mail;
 
+    //private String pseudo;
+
+    private String password;
+
+    private boolean rgpdAccepted;
+
     /**
      * user's date inscription
      */

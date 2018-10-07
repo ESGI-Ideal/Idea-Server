@@ -36,73 +36,6 @@ paths:
           description: 'Create'
       tags:
         - user
-  /user/{id}:
-    get:
-      summary: informations on an user
-      description: ''
-      operationId: getUser
-      parameters:
-        - $ref: '#/components/parameters/id'
-      responses:
-        '200':
-          description: Datas on the user
-          content:
-            application/json:
-                schema:
-                  $ref: '#/components/schemas/User'
-        default:
-          description: User's ID not exist
-      tags:
-        - user
-      security:
-        - OAuth2:
-            - user
-    #patch:
-    #  #TODO
-    delete:
-      description: ''
-      operationId: deleteUser
-      parameters:
-        - $ref: '#/components/parameters/id'
-      responses:
-        '204':
-          description: Delete complete
-          content:
-            application/json:
-                schema:
-                  $ref: '#/components/schemas/User'
-        default:
-          description: User's ID not exist
-      tags:
-        - user
-      security:
-        - OAuth2:
-            - admin
-  /user/{id}/sells:
-    get:
-      summary: articles selling by an user
-      description: ''
-      operationId: getUserArticlesCreate
-      parameters:
-        - $ref: '#/components/parameters/id'
-      responses:
-        '200':
-          description: List of articles' ID
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  type: integer
-                  format: int64
-                uniqueItems: true
-        default:
-          description: User's ID not exist
-      tags:
-        - user
-      security:
-        - OAuth2:
-          - user
   /user/me:
     get:
       summary: informations on current user
@@ -110,7 +43,7 @@ paths:
       security:
         - OAuth2:
             - user
-            - admin
+            #- admin
       responses:
         '200':
           description: user's data summary
@@ -181,6 +114,73 @@ paths:
           description: ''
       tags:
         - user
+  /user/{id}:
+    get:
+      summary: informations on an user
+      description: ''
+      operationId: getUser
+      parameters:
+        - $ref: '#/components/parameters/id'
+      responses:
+        '200':
+          description: Datas on the user
+          content:
+            application/json:
+                schema:
+                  $ref: '#/components/schemas/User'
+        default:
+          description: User's ID not exist
+      tags:
+        - user
+      security:
+        - OAuth2:
+            - user
+    #patch:
+    #  #TODO
+    delete:
+      description: ''
+      operationId: deleteUser
+      parameters:
+        - $ref: '#/components/parameters/id'
+      responses:
+        '204':
+          description: Delete complete
+          content:
+            application/json:
+                schema:
+                  $ref: '#/components/schemas/User'
+        default:
+          description: User's ID not exist
+      tags:
+        - user
+      security:
+        - OAuth2:
+            - admin
+  /user/{id}/sells:
+    get:
+      summary: articles selling by an user
+      description: ''
+      operationId: getUserArticlesCreate
+      parameters:
+        - $ref: '#/components/parameters/id'
+      responses:
+        '200':
+          description: List of articles' ID
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: integer
+                  format: int64
+                uniqueItems: true
+        default:
+          description: User's ID not exist
+      tags:
+        - user
+      security:
+        - OAuth2:
+          - user
 
 components:
   schemas:
@@ -206,6 +206,11 @@ components:
           nullable: true
         email:
           type: string
+          format: email
+        password:
+          type: string
+          format: password
+          writeOnly: true
         #inscription:
         #  type: string
         #  format: date

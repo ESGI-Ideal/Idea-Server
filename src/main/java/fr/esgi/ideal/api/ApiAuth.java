@@ -1,48 +1,30 @@
 package fr.esgi.ideal.api;
 
+import fr.esgi.ideal.DatabaseVerticle;
+import fr.esgi.ideal.api.dto.DbConverter;
 import fr.esgi.ideal.api.dto.User;
-import io.vertx.core.AsyncResult;
-import io.vertx.core.Future;
-import io.vertx.core.Handler;
+import fr.esgi.ideal.dao.tables.pojos.Users;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.auth.AuthProvider;
+import io.vertx.core.logging.Logger;
+import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.web.RoutingContext;
 import lombok.AllArgsConstructor;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.nio.charset.StandardCharsets;
-import java.time.OffsetDateTime;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Date;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 /*
  * Based on https://github.com/dazraf/vertx-oauth2-server
  */
-@Slf4j
+//@Slf4j
 @AllArgsConstructor
 public class ApiAuth {
     private final EventBus eventBus;
-    private final User tmp = new User(0L, "mail@mail.com", OffsetDateTime.now(), null, false);
-
-    @Getter
-    private final AuthProvider provider = new AuthProvider() {
-        @Override
-        public void authenticate(JsonObject authInfo, Handler<AsyncResult<io.vertx.ext.auth.User>> resultHandler) {
-            /*final User usr = accounts.get(authInfo.getString("username"));
-            if(usr == null)
-                resultHandler.handle(Future.failedFuture("User not exist"));
-            else if(authInfo.getString("password", "").equals(usr.getPassword()))
-                resultHandler.handle(Future.failedFuture("incorrect password"));
-            else*/
-                resultHandler.handle(Future.succeededFuture(tmp));
-                //TODO
-        }
-    };
 
     public void token(final RoutingContext context) {
         try {
@@ -63,25 +45,32 @@ public class ApiAuth {
 
             switch(grantType) {
                 case "password":
-                    /*if(!this.accounts.containsKey(userName)) {
-                        context.response().setStatusCode(400).setStatusMessage("Unknown user").end();
-                        return;
-                    }
-                    final User user = this.accounts.get(userName);
-                    if(!Optional.ofNullable(user.getPassword()).orElse("").equals(userPsw)) {
-                        context.response().setStatusCode(400).setStatusMessage("Invalid credentials").end();
-                        return;
-                    }*/
-                    //final String accessToken = tokenFountain.nextAccessToken();
-                    JsonObject response = new JsonObject()
-                            .put("access_token", Base64.getEncoder().encodeToString((userName+" "+new Date().getTime()).getBytes(StandardCharsets.UTF_8)))
-                            .put("token_type", "bearer")
-                            .put("expires_in", 3600)
-                            //.put("refresh_token", "")
-                            .put("scope", Arrays.stream(scopes).collect(Collectors.joining(" ")));
-                    context.response().putHeader("Cache-Control", "no-store").putHeader("Pragma", "no-cache")
-                            .putHeader("Content-Type", "application/json")
-                            .end(response.encodePrettily());
+                    this.eventBus.<Users>send(DatabaseVerticle.DB_USER_GET_BY_MAIL, userName, asyncMsg -> {
+                        if(asyncMsg.succeeded()) {
+                            if(asyncMsg.result().body() == null)
+                                context.response().setStatusCode(404).setStatusMessage("Unknown user").end();
+                            else {
+                                final User user = DbConverter.toAPI(asyncMsg.result().body());
+                                if(!Optional.ofNullable(asyncMsg.result().body().getPassword()).orElse("").equals(userPsw))
+                                    context.response().setStatusCode(400).setStatusMessage("Invalid credentials").end();
+                                else {
+                                    //final String accessToken = tokenFountain.nextAccessToken();
+                                    JsonObject response = new JsonObject()
+                                            .put("access_token", Base64.getEncoder().encodeToString(String.join(" ", user.getMail(), user.getId().toString(), ""+new Date().getTime()).getBytes(StandardCharsets.UTF_8)))
+                                            .put("token_type", "bearer")
+                                            .put("expires_in", 3600)
+                                            //.put("refresh_token", "")
+                                            .put("scope", String.join(" ", scopes));
+                                    context.response().putHeader("Cache-Control", "no-store").putHeader("Pragma", "no-cache")
+                                            .putHeader("Content-Type", "application/json")
+                                            .end(response.encodePrettily());
+                                }
+                            }
+                        } else {
+                            log.error("Get error from bus resquest", asyncMsg.cause());
+                            RouteUtils.error(context, asyncMsg.cause().getMessage());
+                        }
+                    });
                     break;
                 /*case "refresh_token": //TODO ?
                     break;*/
@@ -95,7 +84,7 @@ public class ApiAuth {
         }
     }
 
-    //private final Logger log = LoggerFactory.getLogger(this.getClass());
+    private final Logger log = LoggerFactory.getLogger(this.getClass());
 
     private final static String KEY_TOKEN_LIMIT = "token_limit";
 
@@ -106,13 +95,17 @@ public class ApiAuth {
             final String[] tokenRaw = tokenDecode.split(" ");
             log.info("token: "+Arrays.toString(tokenRaw));
             //routingContext.setUser(this.accounts.get(tokenRaw[0]));
-            routingContext.setUser(tmp);
-            //TODO routingContext.data().put(KEY_TOKEN_LIMIT, new Date(tokenRaw[1]));
+            routingContext.setUser(User.builder().mail(tokenRaw[0]).id(Long.valueOf(tokenRaw[1])).build());
+            //routingContext.user().principal().put("id", Long.valueOf(tokenRaw[1]));
+            //routingContext.data().put(KEY_TOKEN_LIMIT, new Date(tokenRaw[2]));
         }
         routingContext.next();
     }
 
-    private static boolean verif_token_limit(final RoutingContext routingContext) {
+    private /*static*/ boolean verif_token_limit(final RoutingContext routingContext) {
+        if(routingContext.user() == null && routingContext.request().headers().contains("Authorization"))
+            prepare_oauth(routingContext);
+        log.debug("user session = {}", routingContext.user());
         if(routingContext.user() == null)
             routingContext.fail(401);
         else {
@@ -128,64 +121,21 @@ public class ApiAuth {
     public void check_scope_user(final RoutingContext routingContext) {
         if(verif_token_limit(routingContext))
             routingContext.user().isAuthorized("user", res -> {
-                if(res.succeeded() && res.result())
-                    routingContext.next();
-                else
-                    routingContext.fail(404);
+                //if(res.succeeded() && res.result())
+                //    routingContext.next();
+                //else
+                //    routingContext.fail(404);
             });
     }
 
     public void check_scope_admin(final RoutingContext routingContext) {
         if(verif_token_limit(routingContext))
             routingContext.user().isAuthorized("admin", res -> {
-                if(res.succeeded() && res.result())
-                    routingContext.next();
-                else
-                    routingContext.fail(404);
+                //if(res.succeeded() && res.result())
+                //    routingContext.next();
+                //else
+                //    routingContext.fail(404);
             });
     }
 
-    /*final AuthHandler handler;
-
-    final BasicAuthHandler basic;
-    final RedirectAuthHandler redirect;
-    final ChainAuthHandler chain;
-    final DigestAuthHandler digest;
-    final JWTAuthHandler jwt;
-    final OAuth2AuthHandler oauth2 = new OAuth2AuthHandler() {
-        @Override
-        public OAuth2AuthHandler extraParams(JsonObject extraParams) {
-            return null;
-        }
-
-        @Override
-        public OAuth2AuthHandler setupCallback(Route route) {
-            return null;
-        }
-
-        @Override
-        public AuthHandler addAuthority(String authority) {
-            return null;
-        }
-
-        @Override
-        public AuthHandler addAuthorities(Set<String> authorities) {
-            return null;
-        }
-
-        @Override
-        public void parseCredentials(RoutingContext context, Handler<AsyncResult<JsonObject>> handler) {
-
-        }
-
-        @Override
-        public void authorize(User user, Handler<AsyncResult<Void>> handler) {
-
-        }
-
-        @Override
-        public void handle(RoutingContext event) {
-
-        }
-    };*/
 }
