@@ -153,11 +153,14 @@ public class ApiArticle implements SubApiAlter<Articles, Article> {
     public void voteArticle(@NonNull final RoutingContext routingContext) {
         final Optional<Long> id = Optional.ofNullable(((RequestParameters) routingContext.get("parsedParameters")).pathParameter("id"))
                 .map(RequestParameter::getLong);
-        final Optional<Boolean> value = Optional.ofNullable(((RequestParameters) routingContext.get("parsedParameters")).body())
-                .map(RequestParameter::getBoolean);
-        if(id.isPresent() && value.isPresent())
+        final Optional<Boolean> value = Optional.ofNullable(routingContext.getBodyAsString()).map(Boolean::parseBoolean);
+        if(!id.isPresent())
+            RouteUtils.error(routingContext, "The Id passed is null");
+        else if(!value.isPresent())
+            RouteUtils.error(routingContext, "The value passed is null");
+        else
             this.eventBus.<Void>send(DatabaseVerticle.DB_ARTICLE_VOTE,
-                                     new JsonObject().put("articleId", id).put("userId", ((User)routingContext.user()).getId()).put("like", value),
+                                     new JsonObject().put("articleId", id.get()).put("userId", ((User)routingContext.user()).getId()).put("like", value.get()),
                                      asyncMsg -> {
                 if(asyncMsg.succeeded())
                     RouteUtils.send(routingContext, HttpResponseStatus.OK, null);
@@ -166,15 +169,13 @@ public class ApiArticle implements SubApiAlter<Articles, Article> {
                     RouteUtils.error(routingContext, "An error occur on the server");
                 }
             });
-        else
-            RouteUtils.error(routingContext, "The Id passed is null");
     }
 
     public void unvoteArticle(@NonNull final RoutingContext routingContext) {
         final Optional<Long> id = Optional.ofNullable(((RequestParameters) routingContext.get("parsedParameters")).pathParameter("id"))
                                           .map(RequestParameter::getLong);
         if(id.isPresent())
-            this.eventBus.<Void>send(DatabaseVerticle.DB_ARTICLE_UNVOTE, new JsonObject().put("articleId", id).put("userId", ((User)routingContext.user()).getId()), asyncMsg -> {
+            this.eventBus.<Void>send(DatabaseVerticle.DB_ARTICLE_UNVOTE, new JsonObject().put("articleId", id.get()).put("userId", ((User)routingContext.user()).getId()), asyncMsg -> {
                 if(asyncMsg.succeeded())
                     RouteUtils.send(routingContext, HttpResponseStatus.OK, null);
                 else {
