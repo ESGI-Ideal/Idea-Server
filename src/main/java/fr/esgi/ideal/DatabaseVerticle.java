@@ -189,9 +189,9 @@ public class DatabaseVerticle extends AbstractVerticle {
                                              }));
         this.vertx.eventBus().<Articles>consumer(DB_ARTICLE_CREATE,
                 msg -> execSqlRaw(msg, dsl -> dsl.insertInto(ARTICLES_DATA, ARTICLES_DATA.NAME, ARTICLES_DATA.DESCRIPTION, ARTICLES_DATA.PRICE,
-                                                             ARTICLES_DATA.UPDATED, ARTICLES_DATA.CREATED, ARTICLES_DATA.IMAGE)
+                                                             ARTICLES_DATA.UPDATED, ARTICLES_DATA.CREATED, ARTICLES_DATA.IMAGE, ARTICLES_DATA.CREATEBY)
                           .values(/*msg.body().getId(),*/ msg.body().getName(), msg.body().getDescription(), msg.body().getPrice(),
-                                  msg.body().getUpdated(), msg.body().getCreated(), msg.body().getImage())
+                                  msg.body().getUpdated(), msg.body().getCreated(), msg.body().getImage(), msg.body().getCreateby())
                           .returning().fetchOne().getId()/*.into(Articles.class)*/));
         final BiFunction<JsonObject, SelectSelectStep<? extends Record>, ResultQuery<? extends Record>> sqlSearch = (jsobj, select) -> Optional
                 .ofNullable(jsobj.getString("orderby"))

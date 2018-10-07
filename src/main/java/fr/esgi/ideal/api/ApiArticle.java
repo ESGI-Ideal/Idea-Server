@@ -88,6 +88,17 @@ public class ApiArticle implements SubApiAlter<Articles, Article> {
     }
 
     @Override
+    public void create(@NonNull final RoutingContext routingContext) {
+        this.createOrUpdate(mapFrom(((RequestParameters) routingContext.get("parsedParameters")).body().getJsonObject()).setCreateBy(((User)routingContext.user()).getId())).setHandler(res -> {
+            if(res.succeeded()) {
+                //routingContext.response().putHeader("location", Objects.toString(res.result())).setStatusCode(302).end();
+                RouteUtils.send(routingContext, HttpResponseStatus.CREATED, new JsonObject().put("id", res.result()));
+            } else
+                RouteUtils.error(routingContext, "An error occur on the server");
+        });
+    }
+
+    @Override
     public Future<Long> createOrUpdate(@NonNull final Article data) {
         final Future<Long> future = Future.future();
         this.eventBus.<Long>send(DatabaseVerticle.DB_ARTICLE_CREATE, DbConverter.toDB(data), asyncMsg -> {
